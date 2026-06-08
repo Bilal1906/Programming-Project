@@ -1,21 +1,22 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function FirstTimePage() {
   const [code, setCode] = useState('')
   const [nieuwWachtwoord, setNieuwWachtwoord] = useState('')
   const [bevestigWachtwoord, setBevestigWachtwoord] = useState('')
+  const router = useRouter()
 
   const handleBevestigen = async (e) => {
-    e.preventDefault()
-    if (nieuwWachtwoord !== bevestigWachtwoord) {
-      alert('Wachtwoorden komen niet overeen!')
-      return
-    }
-    // Later: API call naar /api/auth/set-password
-    console.log('Wachtwoord instellen voor code:', code)
+  e.preventDefault()
+  if (nieuwWachtwoord !== bevestigWachtwoord) {
+    alert('Wachtwoorden komen niet overeen!')
+    return
   }
+  router.push('/login')
+}
 
   return (
     <div style={{

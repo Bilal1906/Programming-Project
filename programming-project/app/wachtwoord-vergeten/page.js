@@ -9,7 +9,8 @@
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        console.log('Reset mail sturen naar:', email)
+    // Later: API call naar /api/auth/forgot-password
+        router.push('/first-time')
     }
 
     return (
