@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [wachtwoord, setWachtwoord] = useState('')
+  const router = useRouter()
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -112,8 +113,11 @@ export default function LoginPage() {
 
         {/* Wachtwoord vergeten */}
         <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <a href="#" style={{ color: '#1a56db', fontSize: '0.9rem' }}>
-            Wachtwoord vergeten
+          <a href="#"
+            onClick={() => router.push('/wachtwoord-vergeten')}
+            style={{ color: '#1a56db', fontSize: '0.9rem' }}
+        >
+             Wachtwoord vergeten
           </a>
         </div>
 
