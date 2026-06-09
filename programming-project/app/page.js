@@ -1,5 +1,9 @@
 export default function Home() {
   return (
-   <body>{children}</body>
+    <>
+      <h1>test (bleu)</h1>
+      <h2>test (rouge)</h2>
+      <p>test (vert)</p>
+    </>
   );
 }
