@@ -13,6 +13,7 @@ export default function FirstTimePage() {
   e.preventDefault()
   if (nieuwWachtwoord !== bevestigWachtwoord) {
     alert('Wachtwoorden komen niet overeen!')
+    //
     return
   }
   router.push('/login')

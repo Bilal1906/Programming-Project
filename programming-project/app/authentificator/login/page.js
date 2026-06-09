@@ -6,12 +6,35 @@ import { useRouter } from 'next/navigation'
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [wachtwoord, setWachtwoord] = useState('')
+  const [fout, setFout] = useState('')
   const router = useRouter()
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    // Later: API call naar /api/auth/login
-    console.log('inloggen met:', email)
+    setFout('')
+
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, wachtwoord })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      setFout(data.fout)
+      return
+    }
+
+    // Token opslaan
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('rol', data.rol)
+
+    // Doorsturen op basis van rol
+    if (data.rol === 'student') router.push('/dashboard/student')
+    else if (data.rol === 'docent') router.push('/dashboard/docent')
+    else if (data.rol === 'stagementor') router.push('/dashboard/stagementor')
+    else router.push('/dashboard/admin')
   }
 
   return (
@@ -31,14 +54,13 @@ export default function LoginPage() {
         boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
       }}>
 
-        {/* Logo + titel */}
+        {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-          {/* Logo + naam*/}
-            <svg width="36" height="36" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-                <rect width="120" height="120" rx="20" fill="#1a2340"/>
-                <path d="M50 45 A30 30 0 1 0 50 75" fill="none" stroke="white" strokeWidth="9" strokeLinecap="round"/>
-                <polyline points="65,68 75,80 95,55" fill="none" stroke="#4ade80" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <svg width="36" height="36" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <rect width="120" height="120" rx="20" fill="#1a2340"/>
+            <path d="M50 45 A30 30 0 1 0 50 75" fill="none" stroke="white" strokeWidth="9" strokeLinecap="round"/>
+            <polyline points="65,68 75,80 95,55" fill="none" stroke="#4ade80" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>Competent</span>
         </div>
 
@@ -47,9 +69,22 @@ export default function LoginPage() {
           Gebruik uw e-mailadres en wachtwoord
         </p>
 
+        {/* Foutmelding */}
+        {fout && (
+          <div style={{
+            backgroundColor: '#fee2e2',
+            color: '#dc2626',
+            padding: '0.75rem',
+            borderRadius: '6px',
+            marginBottom: '1rem',
+            fontSize: '0.9rem'
+          }}>
+            {fout}
+          </div>
+        )}
+
         <form onSubmit={handleLogin}>
 
-          {/* Email */}
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
               E-mailadres
@@ -70,7 +105,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Wachtwoord */}
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
               Wachtwoord
@@ -91,7 +125,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Knop */}
           <button
             type="submit"
             style={{
@@ -111,13 +144,13 @@ export default function LoginPage() {
 
         </form>
 
-        {/* Wachtwoord vergeten */}
         <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <a href="#"
+          <a
+            href="#"
             onClick={() => router.push('/wachtwoord-vergeten')}
             style={{ color: '#1a56db', fontSize: '0.9rem' }}
-        >
-             Wachtwoord vergeten
+          >
+            Wachtwoord vergeten
           </a>
         </div>
 
