@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'geheim_sleutel_verander_dit'
 const testGebruikers = [
   {
     id: 1,
-    email: 'student@ehb.be',
+    email: 'bilal.jaaboub@ehb.be',
     wachtwoord_hash: bcrypt.hashSync('wachtwoord123', 10),
     rol: 'student',
     voornaam: 'Bilal',
@@ -15,7 +15,7 @@ const testGebruikers = [
   },
   {
     id: 2,
-    email: 'docent@ehb.be',
+    email: 'joachim.quartier@ehb.be',
     wachtwoord_hash: bcrypt.hashSync('wachtwoord123', 10),
     rol: 'docent',
     voornaam: 'Joachim',
@@ -23,11 +23,19 @@ const testGebruikers = [
   },
   {
     id: 3,
-    email: 'mentor@ehb.be',
+    email: 'steve.weemaels@ehb.be',
     wachtwoord_hash: bcrypt.hashSync('wachtwoord123', 10),
     rol: 'stagementor',
     voornaam: 'Steve',
     achternaam: 'Weemaels'
+  },
+  {
+    id: 4,
+    email: 'admin@ehb.be',
+    wachtwoord_hash: bcrypt.hashSync('wachtwoord123', 10),
+    rol: 'admin',
+    voornaam: 'Admin',
+    achternaam: 'Competent'
   }
 ]
 
