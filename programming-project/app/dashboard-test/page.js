@@ -1,46 +1,39 @@
-export default function Home() {
+// app/dashboard-test/page.js
+
+export default function DashboardTest() {
   return (
-    <div>
-      {/* Topbar */}
-      <div className = 'topbar'
-        style={{
-          height: "60px",
-          backgroundColor: "#808080",
-          width: "100%",
-        }}
-      />
+    <div style={{ display: "flex", minHeight: "100vh" }}>
 
       {/* Sidebar */}
-      <div className = 'sidebar'
-        style={{
-          width: "200px",
-          height: "calc(100vh - 60px)",
-          backgroundColor: "#808080",
-          position: "fixed",
-          left: 0,
-          top: "60px",
-          padding: "20px",
-          color: "white",
-        }}
-      />
-        <div>page1</div>
-        <div>page2</div>
-        <div>page3</div>
-        <div>page4</div>
-        <div>page5</div>
-        <div>page6</div>
+      <aside style={{
+        width: "200px",
+        minHeight: "100vh",
+        backgroundColor: "#1a2236",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        display: "flex",
+        flexDirection: "column",
+        padding: "20px 0",
+      }}>
+        <nav style={{ display: "flex", flexDirection: "column", gap: "4px", padding: "0 16px" }}>
+          <div>Page 1</div>
+          <div>Page 2</div>
+          <div>Page 3</div>
+          <div>Page 4</div>
+        </nav>
+      </aside>
 
       {/* Content */}
-      <div
-        style={{
-          marginLeft: "200px",
-          marginTop: "60px",
-          padding: "20px",
-          backgroundColor: "white",
-          minHeight: "calc(100vh - 60px)",
-        }}
-      >
-      </div>
+      <main style={{
+        marginLeft: "200px",
+        flex: 1,
+        padding: "24px",
+        backgroundColor: "#f5f5f5",
+      }}>
+        <h1>Dashboard</h1>
+      </main>
+
     </div>
   );
 }
