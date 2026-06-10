@@ -37,11 +37,6 @@ const navItems = [
     label: "Documenten",
     icon: <Paperclip className="w-4 h-4" />,
   },
-  {
-    href: "/stagementor/profiel",
-    label: "Profiel",
-    icon: <User className="w-4 h-4" />,
-  },
 ];
 
 export default function Sidebar({ user }) {
@@ -109,7 +104,8 @@ export default function Sidebar({ user }) {
                 isActive
                   ? "bg-[#eef2ff] text-[#1e3a5f] font-semibold border-l-2 border-[#1A2E4A]"
                   : "text-gray-500 font-medium border-l-2 border-transparent"
-              }`}>
+              }`}
+            >
               <span className={isActive ? "text-[#1e3a5f]" : "text-gray-400"}>
                 {item.icon}
               </span>
@@ -119,9 +115,17 @@ export default function Sidebar({ user }) {
         })}
       </nav>
 
-      {/* USER ROW */}
-      <div className="flex items-center gap-2.5 px-4 py-3 border-t border-gray-100 mt-2">
-        <div className="w-8 h-8 rounded-full bg-[#1e3a5f] grid place-items-center text-xs font-bold text-white flex-shrink-0">
+      <Link
+        href="/stagementor/profiel"
+        className="flex items-center gap-2.5 px-4 py-3 border-t border-gray-100 mt-2"
+      >
+        <div
+          className={`w-8 h-8 rounded-full grid place-items-center text-xs font-bold flex-shrink-0 ${
+            pathname === "/stagementor/profiel"
+              ? "bg-[#1e3a5f] text-white"
+              : "bg-[#B5D4F4] text-[#0C447C]"
+          }`}
+        >
           {initials}
         </div>
         <div className="min-w-0">
@@ -130,7 +134,7 @@ export default function Sidebar({ user }) {
           </div>
           <div className="text-xs text-gray-400">Stagementor</div>
         </div>
-      </div>
+      </Link>
     </aside>
   );
 }
