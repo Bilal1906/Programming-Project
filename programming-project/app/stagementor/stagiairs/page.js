@@ -4,10 +4,10 @@ export default function StagemenotDahsboard() {
   return (
     <div>
       <Topbar 
-      title="Dashboard" 
+      title="Mijn Stagiaires" 
       subtitle="2025 - 2026"
       />
-      <h1>Dashboard</h1>
+      <h1>Mijn Stagiaires</h1>
     </div>
   );
 }
