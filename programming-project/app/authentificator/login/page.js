@@ -3,20 +3,39 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function FirstTimePage() {
-  const [code, setCode] = useState('')
-  const [nieuwWachtwoord, setNieuwWachtwoord] = useState('')
-  const [bevestigWachtwoord, setBevestigWachtwoord] = useState('')
+export default function LoginPage() {
+  const [email, setEmail] = useState('')
+  const [wachtwoord, setWachtwoord] = useState('')
+  const [fout, setFout] = useState('')
   const router = useRouter()
 
-  const handleBevestigen = async (e) => {
-  e.preventDefault()
-  if (nieuwWachtwoord !== bevestigWachtwoord) {
-    alert('Wachtwoorden komen niet overeen!')
-    return
+  const handleLogin = async (e) => {
+    e.preventDefault()
+    setFout('')
+
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, wachtwoord })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      setFout(data.fout)
+      return
+    }
+
+    // Token opslaan
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('rol', data.rol)
+
+    // Doorsturen op basis van rol
+    if (data.rol === 'student') router.push('/dashboard/student')
+    else if (data.rol === 'docent') router.push('/dashboard/docent')
+    else if (data.rol === 'stagementor') router.push('/dashboard/stagementor')
+    else router.push('/dashboard/admin')
   }
-  router.push('/login')
-}
 
   return (
     <div style={{
@@ -45,25 +64,36 @@ export default function FirstTimePage() {
           <span style={{ fontWeight: '600', fontSize: '1.1rem' }}>Competent</span>
         </div>
 
-        <h1 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.25rem' }}>
-          Wachtwoord instellen
-        </h1>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.25rem' }}>Inloggen</h1>
         <p style={{ color: '#666', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-          Stel uw wachtwoord in om toegang te krijgen
+          Gebruik uw e-mailadres en wachtwoord
         </p>
 
-        <form onSubmit={handleBevestigen}>
+        {/* Foutmelding */}
+        {fout && (
+          <div style={{
+            backgroundColor: '#fee2e2',
+            color: '#dc2626',
+            padding: '0.75rem',
+            borderRadius: '6px',
+            marginBottom: '1rem',
+            fontSize: '0.9rem'
+          }}>
+            {fout}
+          </div>
+        )}
 
-          {/* Code */}
+        <form onSubmit={handleLogin}>
+
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-              Ontvangen code
+              E-mailadres
             </label>
             <input
-              type="text"
-              placeholder="Code uit uw uitnodigingsmail"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
+              type="email"
+              placeholder="uw@email.be"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               style={{
                 width: '100%',
                 padding: '0.65rem 0.9rem',
@@ -75,37 +105,15 @@ export default function FirstTimePage() {
             />
           </div>
 
-          {/* Nieuw wachtwoord */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-              Nieuw wachtwoord
-            </label>
-            <input
-              type="password"
-              placeholder="Kies een wachtwoord"
-              value={nieuwWachtwoord}
-              onChange={(e) => setNieuwWachtwoord(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.65rem 0.9rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '0.95rem',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
-          {/* Bevestig wachtwoord */}
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-              Bevestig wachtwoord
+              Wachtwoord
             </label>
             <input
               type="password"
-              placeholder="Herhaal uw wachtwoord"
-              value={bevestigWachtwoord}
-              onChange={(e) => setBevestigWachtwoord(e.target.value)}
+              placeholder="Uw wachtwoord"
+              value={wachtwoord}
+              onChange={(e) => setWachtwoord(e.target.value)}
               style={{
                 width: '100%',
                 padding: '0.65rem 0.9rem',
@@ -117,7 +125,6 @@ export default function FirstTimePage() {
             />
           </div>
 
-          {/* Knop */}
           <button
             type="submit"
             style={{
@@ -132,10 +139,21 @@ export default function FirstTimePage() {
               cursor: 'pointer'
             }}
           >
-            Bevestigen →
+            Inloggen →
           </button>
 
         </form>
+
+        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+          <a
+            href="#"
+            onClick={() => router.push('/wachtwoord-vergeten')}
+            style={{ color: '#1a56db', fontSize: '0.9rem' }}
+          >
+            Wachtwoord vergeten
+          </a>
+        </div>
+
       </div>
     </div>
   )
