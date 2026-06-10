@@ -31,10 +31,10 @@ export default function LoginPage() {
     localStorage.setItem('rol', data.rol)
 
     // Doorsturen op basis van rol
-    if (data.rol === 'student') router.push('/dashboard/student')
-    else if (data.rol === 'docent') router.push('/dashboard/docent')
-    else if (data.rol === 'stagementor') router.push('/dashboard/stagementor')
-    else router.push('/dashboard/admin')
+   if (data.rol === 'student') router.push('/student/dashboard-first')
+   else if (data.rol === 'docent') router.push('/docent/dashboard')
+   else if (data.rol === 'stagementor') router.push('/stagementor/dashboard')
+   else router.push('/admin/dashboard')
   }
 
   return (
