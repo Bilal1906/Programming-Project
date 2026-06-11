@@ -16,6 +16,21 @@ const stage = {
   aantalWeken: 16,
   huidigeWeek: 7,
   voortgang: 44,
+  opdracht: 'Ontwikkeling van een intern portaal voor het opvolgen van IT-assets binnen Proximus NV. De student werkt in een Agile team en is verantwoordelijk voor de backend API\'s in Node.js en de integratie met de bestaande ERP-systemen. Het project omvat ook het schrijven van unit tests en het documenteren van de API via Swagger.',
+  contactpersonen: [
+    {
+      initialen: 'SW',
+      naam: 'Steve Weemaels',
+      functie: 'Stagementor · Proximus NV',
+      email: 's.weemaels@proximus.be',
+    },
+    {
+      initialen: 'JQ',
+      naam: 'Joachim Quartier',
+      functie: 'Begeleider EhB · Docent',
+      email: 'joachim.quartier@ehb.be',
+    },
+  ]
 }
 
 export default function MijnStage() {
@@ -85,8 +100,32 @@ export default function MijnStage() {
             </div>
           </div>
 
-        </div>
+          {/* Contactpersonen */}
+          <div className="bg-white rounded-xl p-5">
+            <h2 className="text-sm font-semibold text-gray-800 mb-4">Contactpersonen</h2>
+            <div className="space-y-4">
+              {stage.contactpersonen.map((persoon) => (
+                <div key={persoon.naam} className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#c7d2e8] flex items-center justify-center text-xs font-bold text-[#1e3a5f] flex-shrink-0">
+                    {persoon.initialen}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-900">{persoon.naam}</div>
+                    <div className="text-xs text-gray-400">{persoon.functie}</div>
+                    <a href={`mailto:${persoon.email}`} className="text-xs text-blue-500 hover:underline">{persoon.email}</a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
+          {/* Stageopdracht */}
+          <div className="bg-white rounded-xl p-5">
+            <h2 className="text-sm font-semibold text-gray-800 mb-4">Stageopdracht</h2>
+            <p className="text-sm text-gray-600 leading-relaxed">{stage.opdracht}</p>
+          </div>
+
+        </div>
       </div>
     </div>
   )
