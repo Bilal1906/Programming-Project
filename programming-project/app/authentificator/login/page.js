@@ -147,7 +147,7 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', marginTop: '1rem' }}>
           <a
             href="#"
-            onClick={() => router.push('/wachtwoord-vergeten')}
+            onClick={() => router.push('/authentificator/wachtwoord-vergeten')}
             style={{ color: '#1a56db', fontSize: '0.9rem' }}
           >
             Wachtwoord vergeten

@@ -7,27 +7,30 @@ import {
   BookOpen,
   Star,
   Paperclip,
-  User,
   Layers,
 } from 'lucide-react';
 
 const navItems = [
-  { href: '/student', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+  { href: '/student/dashboard-first', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
   { href: '/student/mijn-stage', label: 'Mijn Stage', icon: <FileText className="w-4 h-4" /> },
   { href: '/student/logboeken', label: 'Logboeken', icon: <BookOpen className="w-4 h-4" /> },
   { href: '/student/evaluaties', label: 'Evaluaties', icon: <Star className="w-4 h-4" /> },
   { href: '/student/documenten', label: 'Documenten', icon: <Paperclip className="w-4 h-4" /> },
-  { href: '/student/profiel', label: 'Profiel', icon: <User className="w-4 h-4" /> },
 ];
+
+const disabledItems = ['/student/mijn-stage', '/student/logboeken', '/student/evaluaties', '/student/documenten'];
 
 export default function Sidebar({ user }) {
   const pathname = usePathname();
+  const isDashboardFirst = pathname === '/student/dashboard-first' || pathname === '/student/stage/nieuw' || pathname === '/student/stage'
+
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : 'BJ';
 
   return (
     <aside className="w-52 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col py-5 min-h-screen">
+
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 mb-7">
         <div className="w-8 h-8 bg-[#1e3a5f] rounded-lg grid place-items-center flex-shrink-0">
@@ -39,9 +42,23 @@ export default function Sidebar({ user }) {
       {/* Nav items */}
       <nav className="flex flex-col flex-1">
         {navItems.map((item) => {
-          const isActive = item.href === '/student'
-            ? pathname === '/student'
+          const isDisabled = isDashboardFirst && disabledItems.includes(item.href);
+          const isActive = item.href === '/student/dashboard-first'
+            ? pathname === '/student/dashboard-first'
             : pathname.startsWith(item.href);
+
+          if (isDisabled) {
+            return (
+              <div
+                key={item.href}
+                className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-300 cursor-not-allowed"
+              >
+                <span className="text-gray-300">{item.icon}</span>
+                {item.label}
+              </div>
+            );
+          }
+
           return (
             <Link
               key={item.href}
@@ -61,8 +78,8 @@ export default function Sidebar({ user }) {
         })}
       </nav>
 
-      {/* User row */}
-      <div className="flex items-center gap-2.5 px-4 py-3 border-t border-gray-100 mt-2">
+      {/* User row - klikbaar voor profiel */}
+      <Link href="/student/profiel" className="flex items-center gap-2.5 px-4 py-3 border-t border-gray-100 mt-2 hover:bg-gray-50">
         <div className="w-8 h-8 rounded-full bg-[#c7d2e8] grid place-items-center text-xs font-bold text-[#1e3a5f] flex-shrink-0">
           {initials}
         </div>
@@ -72,7 +89,8 @@ export default function Sidebar({ user }) {
           </div>
           <div className="text-xs text-gray-400">Student</div>
         </div>
-      </div>
+      </Link>
+
     </aside>
   );
 }

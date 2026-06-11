@@ -13,28 +13,33 @@ import {
 
 const navItems = [
   {
-    href: "/stagementor/dashboard",
-    label: "Dashboard",
+    href: "/admin/dashboard",
+    label: "dashboard",
     icon: <LayoutDashboard className="w-4 h-4" />,
   },
   {
-    href: "/stagementor/stagiairs",
-    label: "Mijn stagiairs",
+    href: "/admin/stage",
+    label: "stage",
     icon: <Users className="w-4 h-4" />,
   },
   {
-    href: "/stagementor/logboeken",
-    label: "Logboeken",
+    href: "/admin/studenten",
+    label: "studenten",
     icon: <BookOpen className="w-4 h-4" />,
   },
   {
-    href: "/stagementor/evaluaties",
-    label: "Evaluaties",
+    href: "/admin/docenten",
+    label: "docenten",
     icon: <Star className="w-4 h-4" />,
   },
   {
-    href: "/stagementor/documenten",
-    label: "Documenten",
+    href: "/admin/stagementors",
+    label: "stagementors",
+    icon: <Paperclip className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/overeenkomsten",
+    label: "overeenkomsten",
     icon: <Paperclip className="w-4 h-4" />,
   },
 ];
