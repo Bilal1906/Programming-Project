@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Topbar from '../component/topbar'
 
@@ -10,6 +11,11 @@ const aanvragen = [
     ingediend: '15 jan 2025',
     opleiding: 'Toegepaste Informatica 3',
     status: 'goedgekeurd',
+    stagementor: 'Steve Weemaels',
+    begeleider: 'Joachim Quartier',
+    startdatum: '3 februari 2025',
+    einddatum: '23 mei 2025',
+    duur: '16 weken · 560u',
   },
   {
     id: 2,
@@ -56,6 +62,7 @@ const statusBadge = (status) => {
 
 export default function StageAanvragen() {
   const router = useRouter()
+  const [openId, setOpenId] = useState(null)
 
   return (
     <div className="flex-1 flex flex-col">
@@ -74,12 +81,51 @@ export default function StageAanvragen() {
 
       <div className="flex-1 bg-gray-100 p-6 space-y-3">
         {aanvragen.map((aanvraag) => (
-          <div key={aanvraag.id} className="bg-white rounded-xl px-5 py-4 flex items-center justify-between">
-            <div>
-              <div className="font-semibold text-sm text-gray-900">{aanvraag.bedrijf}</div>
-              <div className="text-xs text-gray-400">{aanvraag.ingediend}{aanvraag.opleiding ? ` · ${aanvraag.opleiding}` : ''}</div>
+          <div key={aanvraag.id} className="bg-white rounded-xl overflow-hidden">
+            <div
+              className="flex items-center justify-between px-5 py-4 cursor-pointer"
+              onClick={() => setOpenId(openId === aanvraag.id ? null : aanvraag.id)}
+            >
+              <div>
+                <div className="font-semibold text-sm text-gray-900">{aanvraag.bedrijf}</div>
+                <div className="text-xs text-gray-400">{aanvraag.ingediend}{aanvraag.opleiding ? ` · ${aanvraag.opleiding}` : ''}</div>
+              </div>
+              <div className="flex items-center gap-3">
+                {statusBadge(aanvraag.status)}
+                <span className="text-gray-400 text-sm">{openId === aanvraag.id ? '∧' : '∨'}</span>
+              </div>
             </div>
-            {statusBadge(aanvraag.status)}
+
+            {openId === aanvraag.id && aanvraag.stagementor && (
+              <div className="px-5 pb-5 border-t border-gray-100">
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <div className="text-xs text-gray-400 mb-1">Bedrijf</div>
+                    <div className="text-sm font-medium">{aanvraag.bedrijf}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400 mb-1">Stagementor</div>
+                    <div className="text-sm font-medium">{aanvraag.stagementor}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400 mb-1">Begeleider EhB</div>
+                    <div className="text-sm font-medium">{aanvraag.begeleider}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400 mb-1">Startdatum</div>
+                    <div className="text-sm font-medium">{aanvraag.startdatum}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400 mb-1">Einddatum</div>
+                    <div className="text-sm font-medium">{aanvraag.einddatum}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400 mb-1">Duur</div>
+                    <div className="text-sm font-medium">{aanvraag.duur}</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
