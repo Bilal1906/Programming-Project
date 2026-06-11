@@ -9,9 +9,13 @@
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-    // Later: API call naar /api/auth/forgot-password
-        router.push('/first-time')
+     if (!email) {
+        alert('Vul uw e-mailadres in!')
+     return
     }
+  // Later: API call naar /api/auth/forgot-password
+  router.push('/authentificator/first-time')
+}
 
     return (
         <div style={{
@@ -91,7 +95,7 @@
             href="#"
             onClick={(e) => {
               e.preventDefault()
-              router.push('/login')
+              router.push('/authentificator/login')
             }}
             style={{ color: '#1a56db', fontSize: '0.9rem' }}
           >
