@@ -8,32 +8,38 @@ import {
   BookOpen,
   Star,
   Paperclip,
+  User,
 } from "lucide-react";
 
 const navItems = [
   {
-    href: "/stagementor/dashboard",
-    label: "Dashboard",
+    href: "/admin/dashboard",
+    label: "dashboard",
     icon: <LayoutDashboard className="w-4 h-4" />,
   },
   {
-    href: "/stagementor/stagiairs",
-    label: "Mijn stagiairs",
+    href: "/admin/stage",
+    label: "stage",
     icon: <Users className="w-4 h-4" />,
   },
   {
-    href: "/stagementor/logboeken",
-    label: "Logboeken",
+    href: "/admin/studenten",
+    label: "studenten",
     icon: <BookOpen className="w-4 h-4" />,
   },
   {
-    href: "/stagementor/evaluaties",
-    label: "Evaluaties",
+    href: "/admin/docenten",
+    label: "docenten",
     icon: <Star className="w-4 h-4" />,
   },
   {
-    href: "/stagementor/documenten",
-    label: "Documenten",
+    href: "/admin/stagementors",
+    label: "stagementors",
+    icon: <Paperclip className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/overeenkomsten",
+    label: "overeenkomsten",
     icon: <Paperclip className="w-4 h-4" />,
   },
 ];
@@ -52,39 +58,42 @@ export default function Sidebar({ user }) {
 
   return (
     <aside className="w-52 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col py-5 h-screen sticky top-0">
-      {/* LOGO */}
-      <div className="flex items-center gap-2.5 px-4 mb-7">
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <svg
-            width="36"
-            height="36"
-            viewBox="0 0 120 120"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect width="120" height="120" rx="20" fill="#1a2340" />
-            <path
-              d="M50 45 A30 30 0 1 0 50 75"
-              fill="none"
-              stroke="white"
-              strokeWidth="9"
-              strokeLinecap="round"
-            />
-            <polyline
-              points="65,68 75,80 95,55"
-              fill="none"
-              stroke="#4ade80"
-              strokeWidth="7"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span className="text-sm font-bold text-gray-900 tracking-tight">
-            Competent
-          </span>
-        </div>
+      {/* Logo */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          marginBottom: "1.5rem",
+          marginLeft: "1rem",
+        }}
+      >
+        <svg
+          width="36"
+          height="36"
+          viewBox="0 0 120 120"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect width="120" height="120" rx="20" fill="#1a2340" />
+          <path
+            d="M50 45 A30 30 0 1 0 50 75"
+            fill="none"
+            stroke="white"
+            strokeWidth="9"
+            strokeLinecap="round"
+          />
+          <polyline
+            points="65,68 75,80 95,55"
+            fill="none"
+            stroke="#4ade80"
+            strokeWidth="7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <span style={{ fontWeight: "600", fontSize: "1.1rem" }}>Competent</span>
       </div>
 
-      {/* NAV ITEMS */}
       <nav className="flex flex-col flex-1">
         {navItems.map((item) => {
           const isActive =
@@ -111,7 +120,6 @@ export default function Sidebar({ user }) {
         })}
       </nav>
 
-      {/* USER ROW */}
       <Link
         href="/stagementor/profiel"
         className="flex items-center gap-2.5 px-4 py-3 border-t border-gray-100 mt-2"
