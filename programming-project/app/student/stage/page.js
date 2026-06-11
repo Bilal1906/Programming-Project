@@ -1,7 +1,39 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Topbar from '../component/topbar'
+
+const aanvragen = [
+  {
+    id: 1,
+    bedrijf: 'Proximus NV',
+    ingediend: '15 jan 2025',
+    opleiding: 'Toegepaste Informatica 3',
+    status: 'goedgekeurd',
+  },
+  {
+    id: 2,
+    bedrijf: 'Accenture Belgium',
+    ingediend: '10 jan 2025',
+    opleiding: 'Toegepaste Informatica 3',
+    status: 'behandeling',
+  },
+  {
+    id: 3,
+    bedrijf: 'Small Startup BV',
+    ingediend: '2 jan 2025',
+    opleiding: 'Toegepaste Informatica 3',
+    status: 'afgekeurd',
+  },
+  {
+    id: 4,
+    bedrijf: 'Concept — Naam bedrijf nog niet ingevuld',
+    ingediend: 'Opgeslagen als concept op 20 dec 2024',
+    opleiding: '',
+    status: 'concept',
+  },
+]
 
 export default function StageAanvragen() {
   const router = useRouter()
@@ -21,8 +53,13 @@ export default function StageAanvragen() {
         }
       />
 
-      <div className="flex-1 bg-gray-100 p-6">
-        <p className="text-gray-400 text-sm">Geen aanvragen gevonden.</p>
+      <div className="flex-1 bg-gray-100 p-6 space-y-3">
+        {aanvragen.map((aanvraag) => (
+          <div key={aanvraag.id} className="bg-white rounded-xl px-5 py-4">
+            <div className="font-semibold text-sm">{aanvraag.bedrijf}</div>
+            <div className="text-xs text-gray-400">{aanvraag.ingediend}</div>
+          </div>
+        ))}
       </div>
     </div>
   )
