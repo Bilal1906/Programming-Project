@@ -1,8 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import Topbar from '../component/topbar'
 
 export default function Logboeken() {
+  const [week, setWeek] = useState(7)
+
   return (
     <div className="flex-1 flex flex-col">
       <Topbar
@@ -17,8 +20,28 @@ export default function Logboeken() {
           </div>
         }
       />
-      <div className="flex-1 bg-gray-100 p-6">
-        <p className="text-gray-400 text-sm">Inhoud komt hier.</p>
+      <div className="flex-1 bg-gray-100 p-6 space-y-4">
+
+        {/* Week navigator */}
+        <div className="bg-white rounded-xl p-4 flex items-center justify-between">
+          <button
+            onClick={() => setWeek(w => Math.max(1, w - 1))}
+            className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 cursor-pointer"
+          >
+            ‹
+          </button>
+          <div className="text-center">
+            <div className="text-sm font-semibold text-gray-900">Week {week} — 2 t/m 6 juni 2025</div>
+            <div className="text-xs text-gray-400">Wekelijks afgecheckt door Steve Weemaels</div>
+          </div>
+          <button
+            onClick={() => setWeek(w => Math.min(16, w + 1))}
+            className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 cursor-pointer"
+          >
+            ›
+          </button>
+        </div>
+
       </div>
     </div>
   )
