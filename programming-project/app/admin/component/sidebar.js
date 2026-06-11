@@ -16,18 +16,28 @@ const navItems = [
     icon: <LayoutDashboard className="w-4 h-4" />,
   },
   {
-    href: "/admin/stageaanvragen",
-    label: "stageaanvragen",
+    href: "/admin/stage",
+    label: "stage",
     icon: <StickyNote className="w-4 h-4" />,
   },
   {
-    href: "/admin/gebruikersbeheer",
-    label: "gebruikersbeheer",
+    href: "/admin/studenten",
+    label: "studenten",
     icon: <Users className="w-4 h-4" />,
   },
   {
-    href: "/admin/competenties",
-    label: "competenties",
+    href: "/admin/docenten",
+    label: "docenten",
+    icon: <Users className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/stagementors",
+    label: "stagementors",
+    icon: <Users className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/overeenkomsten",
+    label: "overeenkomsten",
     icon: <GraduationCap className="w-4 h-4" />,
   },
 ];
