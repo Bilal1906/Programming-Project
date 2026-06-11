@@ -10,7 +10,7 @@ export default function Topbar({ titel, subtitel, rechts }) {
         )}
       </div>
       {rechts && (
-        <span className="text-xs text-gray-400">{rechts}</span>
+        <div>{rechts}</div>
       )}
     </div>
   )
