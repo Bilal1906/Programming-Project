@@ -91,7 +91,7 @@
             href="#"
             onClick={(e) => {
               e.preventDefault()
-              router.push('/login')
+              router.push('/authentificator/login')
             }}
             style={{ color: '#1a56db', fontSize: '0.9rem' }}
           >
