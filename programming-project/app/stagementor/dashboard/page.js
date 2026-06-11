@@ -28,14 +28,14 @@ export default function StagementorDashboard() {
 
   return (
     <div>
-      <Topbar title="Dashboard" subtitle="2025–2026" />
+      <Topbar title="Dashboard" subtitle="2025 - 2026" />
 
       <div className="p-6 flex flex-col gap-3">
 
         {/* WELKOM */}
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-gray-900">
-            Welkom terug, {user ? user.voornaam : '...'} 👋
+            Welkom terug, {user ? user.voornaam : '...'} 
           </h1>
           <p className="text-sm text-gray-400 mt-1">
             Overzicht van uw stagiairs deze week
