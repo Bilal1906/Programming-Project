@@ -7,7 +7,7 @@ export default function AdminTopbar({
   title,
   backHref,
   backLabel,
-  subtitle,
+  subtitle = "2025 – 2026",
   rightContent,
 }) {
   return (
