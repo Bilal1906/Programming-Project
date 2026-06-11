@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
-  StickyNote,
-  GraduationCap,
+  BookOpen,
+  Star,
+  Paperclip,
+  User,
 } from "lucide-react";
 
 const navItems = [
@@ -16,19 +18,29 @@ const navItems = [
     icon: <LayoutDashboard className="w-4 h-4" />,
   },
   {
-    href: "/admin/stageaanvragen",
-    label: "stageaanvragen",
-    icon: <StickyNote className="w-4 h-4" />,
-  },
-  {
-    href: "/admin/gebruikersbeheer",
-    label: "gebruikersbeheer",
+    href: "/admin/stage",
+    label: "stage",
     icon: <Users className="w-4 h-4" />,
   },
   {
-    href: "/admin/competenties",
-    label: "competenties",
-    icon: <GraduationCap className="w-4 h-4" />,
+    href: "/admin/studenten",
+    label: "studenten",
+    icon: <BookOpen className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/docenten",
+    label: "docenten",
+    icon: <Star className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/stagementors",
+    label: "stagementors",
+    icon: <Paperclip className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/overeenkomsten",
+    label: "overeenkomsten",
+    icon: <Paperclip className="w-4 h-4" />,
   },
 ];
 
@@ -42,7 +54,7 @@ export default function Sidebar({ user }) {
         .join("")
         .slice(0, 2)
         .toUpperCase()
-    : "AD";
+    : "SW";
 
   return (
     <aside className="w-52 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col py-5 h-screen sticky top-0">
@@ -84,7 +96,10 @@ export default function Sidebar({ user }) {
 
       <nav className="flex flex-col flex-1">
         {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
+          const isActive =
+            item.href === "/stagementor/dashboard"
+              ? pathname === "/stagementor/dashboard"
+              : pathname.startsWith(item.href);
 
           return (
             <Link
@@ -106,12 +121,12 @@ export default function Sidebar({ user }) {
       </nav>
 
       <Link
-        href="/admin/profiel"
+        href="/stagementor/profiel"
         className="flex items-center gap-2.5 px-4 py-3 border-t border-gray-100 mt-2"
       >
         <div
           className={`w-8 h-8 rounded-full grid place-items-center text-xs font-bold flex-shrink-0 ${
-            pathname === "/admin/profiel"
+            pathname === "/stagementor/profiel"
               ? "bg-[#1e3a5f] text-white"
               : "bg-[#B5D4F4] text-[#0C447C]"
           }`}
@@ -120,9 +135,9 @@ export default function Sidebar({ user }) {
         </div>
         <div className="min-w-0">
           <div className="text-xs font-semibold text-gray-900 truncate">
-            {user?.name ?? "Admin Gebruiker"}
+            {user?.name ?? "Steve Weemaels"}
           </div>
-          <div className="text-xs text-gray-400">Admin</div>
+          <div className="text-xs text-gray-400">Stagementor</div>
         </div>
       </Link>
     </aside>
