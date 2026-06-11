@@ -8,12 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
-<<<<<<< HEAD
     "@documenso/sdk-typescript": "^0.8.1",
-    "next": "16.2.7",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
-=======
     "bcryptjs": "^3.0.3",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.17.0",
@@ -21,10 +16,8 @@
     "next": "^16.2.9",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
->>>>>>> 36e82ca961602e39f5ad8566e2bc2aab2a6ee4f0
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.19"
