@@ -9,9 +9,13 @@
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-    // Later: API call naar /api/auth/forgot-password
-        router.push('/first-time')
+     if (!email) {
+        alert('Vul uw e-mailadres in!')
+     return
     }
+  // Later: API call naar /api/auth/forgot-password
+  router.push('/authentificator/first-time')
+}
 
     return (
         <div style={{
