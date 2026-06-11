@@ -16,6 +16,12 @@ const aanvragen = [
     startdatum: '3 februari 2025',
     einddatum: '23 mei 2025',
     duur: '16 weken · 560u',
+    tijdlijn: [
+      { label: 'Aanvraag ingediend', datum: '15 jan 2025' },
+      { label: 'Doorgestuurd naar admin', sub: 'Joachim Quartier · 17 jan 2025' },
+      { label: 'Goedgekeurd door admin', sub: 'Ruben Dejockheere · 22 jan 2025' },
+      { label: 'Stage gestart', datum: '3 feb 2025' },
+    ]
   },
   {
     id: 2,
@@ -98,7 +104,7 @@ export default function StageAanvragen() {
 
             {openId === aanvraag.id && aanvraag.stagementor && (
               <div className="px-5 pb-5 border-t border-gray-100">
-                <div className="grid grid-cols-3 gap-4 mt-4">
+                <div className="grid grid-cols-3 gap-4 mt-4 mb-4">
                   <div>
                     <div className="text-xs text-gray-400 mb-1">Bedrijf</div>
                     <div className="text-sm font-medium">{aanvraag.bedrijf}</div>
@@ -124,6 +130,21 @@ export default function StageAanvragen() {
                     <div className="text-sm font-medium">{aanvraag.duur}</div>
                   </div>
                 </div>
+
+                {aanvraag.tijdlijn && (
+                  <div className="space-y-2 mt-3">
+                    {aanvraag.tijdlijn.map((stap, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-800">{stap.label}</div>
+                          {stap.sub && <div className="text-xs text-gray-400">{stap.sub}</div>}
+                          {stap.datum && <div className="text-xs text-gray-400">{stap.datum}</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
