@@ -22,7 +22,7 @@ const disabledItems = ['/student/mijn-stage', '/student/logboeken', '/student/ev
 
 export default function Sidebar({ user }) {
   const pathname = usePathname();
-  const isDashboardFirst = pathname === '/student/dashboard-first';
+  const isDashboardFirst = pathname === '/student/dashboard-first' || pathname === '/student/stage/nieuw' || pathname === '/student/stage'
 
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
