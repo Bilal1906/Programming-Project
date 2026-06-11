@@ -8,7 +8,6 @@ export async function POST(request) {
   try {
     const { email, wachtwoord } = await request.json()
 
-    // Gebruiker zoeken in database
     const [rijen] = await db.query(
       'SELECT * FROM user WHERE email = ?',
       [email]
@@ -23,7 +22,6 @@ export async function POST(request) {
 
     const gebruiker = rijen[0]
 
-    // Wachtwoord controleren
     const wachtwoordKlopt = await bcrypt.compare(wachtwoord, gebruiker.wachtwoord_hash)
 
     if (!wachtwoordKlopt) {
@@ -33,14 +31,26 @@ export async function POST(request) {
       )
     }
 
-    // JWT token aanmaken
+    // Stagementor id ophalen
+    let stagementor_id = null;
+    if (gebruiker.rol === 'stagementor') {
+      const [smRijen] = await db.query(
+        'SELECT id FROM stagementor WHERE user_id = ?',
+        [gebruiker.id]
+      );
+      if (smRijen.length > 0) {
+        stagementor_id = smRijen[0].id;
+      }
+    }
+
     const token = jwt.sign(
       {
         id: gebruiker.id,
         email: gebruiker.email,
         rol: gebruiker.rol,
         voornaam: gebruiker.voornaam,
-        achternaam: gebruiker.achternaam
+        achternaam: gebruiker.achternaam,
+        stagementor_id: stagementor_id
       },
       JWT_SECRET,
       { expiresIn: '24h' }
