@@ -129,6 +129,37 @@ export default function Logboeken() {
           ))}
         </div>
 
+        {/* Samenvatting */}
+        <div className="bg-white rounded-xl p-5">
+          <div className="grid grid-cols-4 gap-4 mb-4">
+            <div>
+              <div className="text-xs text-gray-400 mb-1">Totaal uren</div>
+              <div className="text-sm font-bold text-yellow-600">16 / 40u</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-400 mb-1">Dagen ingevuld</div>
+              <div className="text-sm font-bold text-gray-900">2 / 5</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-400 mb-1">Competenties gelogd</div>
+              <div className="text-sm font-bold text-gray-900">4</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-400 mb-1">Status week</div>
+              <div className="text-sm font-bold text-yellow-600">Onvolledig</div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-semibold text-gray-800">Week indienen bij stagementor</div>
+              <div className="text-xs text-gray-400">Alle 5 dagen moeten ingevuld zijn en minimaal 40u gelogd voor je de week kan indienen.</div>
+            </div>
+            <button className="px-4 py-2 bg-gray-200 text-gray-400 text-sm rounded-lg cursor-not-allowed font-medium">
+              Week indienen (2/5 dagen)
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   )
