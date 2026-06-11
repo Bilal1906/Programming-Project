@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Topbar from '../component/topbar';
-import { ChevronRight, BookOpen, Star } from 'lucide-react';
+import { ChevronRight, BookOpen, Star, Users } from 'lucide-react';
 
 export default function StagementorDashboard() {
   const [user, setUser] = useState(null);
@@ -46,24 +46,34 @@ export default function StagementorDashboard() {
         <p className="text-xs text-gray-400">Mijn stagiairs</p>
 
         {/* STAGIAIRS DYNAMISCH */}
-        {stagiairs.map((s) => (
-          <div key={s.stage_id} className="bg-white border border-gray-200 rounded-lg flex items-center justify-between px-5 py-4 cursor-pointer">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#dbeafe] grid place-items-center text-xs font-bold text-[#1d4ed8] flex-shrink-0">
-                {getInitials(s.voornaam, s.achternaam)}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">
-                  {s.voornaam} {s.achternaam}
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Stage loopt · Docent: {s.docent_voornaam} {s.docent_achternaam}
-                </p>
-              </div>
+        {stagiairs.length === 0 ? (
+          <div className="bg-white border border-gray-200 rounded-lg px-5 py-10 flex flex-col items-center gap-2">
+            <div className="w-12 h-12 bg-gray-100 rounded-full grid place-items-center mb-1">
+              <Users className="w-6 h-6 text-gray-400" />
             </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <p className="text-sm font-semibold text-gray-600">Geen stagiairs toegewezen</p>
+            <p className="text-xs text-gray-400">U heeft momenteel geen actieve stagiairs</p>
           </div>
-        ))}
+        ) : (
+          stagiairs.map((s) => (
+            <div key={s.stage_id} className="bg-white border border-gray-200 rounded-lg flex items-center justify-between px-5 py-4 cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-[#dbeafe] grid place-items-center text-xs font-bold text-[#1d4ed8] flex-shrink-0">
+                  {getInitials(s.voornaam, s.achternaam)}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {s.voornaam} {s.achternaam}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Stage loopt · Docent: {s.docent_voornaam} {s.docent_achternaam}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            </div>
+          ))
+        )}
 
         {/* ACTIE KAARTEN */}
         <div className="grid grid-cols-2 gap-3">
