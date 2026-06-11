@@ -6,14 +6,25 @@ import { ChevronRight, BookOpen, Star } from 'lucide-react';
 
 export default function StagementorDashboard() {
   const [user, setUser] = useState(null);
+  const [stagiairs, setStagiairs] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       const payload = JSON.parse(atob(token.split('.')[1]));
       setUser(payload);
+
+      fetch('/api/stagementor/stagiairs', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(data => setStagiairs(data));
     }
   }, []);
+
+  const getInitials = (voornaam, achternaam) => {
+    return `${voornaam?.[0] ?? ''}${achternaam?.[0] ?? ''}`.toUpperCase();
+  };
 
   return (
     <div>
@@ -34,42 +45,29 @@ export default function StagementorDashboard() {
         {/* LABEL */}
         <p className="text-xs text-gray-400">Mijn stagiairs</p>
 
-        {/* STAGIAIR — Bilal */}
-        <div className="bg-white border border-gray-200 rounded-lg flex items-center justify-between px-5 py-4 cursor-pointer">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#dbeafe] grid place-items-center text-xs font-bold text-[#1d4ed8] flex-shrink-0">
-              BJ
+        {/* STAGIAIRS DYNAMISCH */}
+        {stagiairs.map((s) => (
+          <div key={s.stage_id} className="bg-white border border-gray-200 rounded-lg flex items-center justify-between px-5 py-4 cursor-pointer">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-[#dbeafe] grid place-items-center text-xs font-bold text-[#1d4ed8] flex-shrink-0">
+                {getInitials(s.voornaam, s.achternaam)}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">
+                  {s.voornaam} {s.achternaam}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Stage loopt · Docent: {s.docent_voornaam} {s.docent_achternaam}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900">Bilal Jaaboub</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Stage loopt · week 6 van 13 · Docent: Joachim Quartier
-              </p>
-            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
           </div>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-        </div>
-
-        {/* STAGIAIR — Nassim */}
-        <div className="bg-white border border-gray-200 rounded-lg flex items-center justify-between px-5 py-4 cursor-pointer">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#d1fae5] grid place-items-center text-xs font-bold text-[#065f46] flex-shrink-0">
-              NG
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900">Nassim El Ghzaoui</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Stage loopt · week 6 van 13 · Docent: Tom Aertssens
-              </p>
-            </div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-        </div>
+        ))}
 
         {/* ACTIE KAARTEN */}
         <div className="grid grid-cols-2 gap-3">
 
-          {/* Logboeken */}
           <div className="bg-white border border-gray-200 rounded-lg flex items-center justify-between px-5 py-4 cursor-pointer">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gray-900 grid place-items-center rounded flex-shrink-0">
@@ -83,7 +81,6 @@ export default function StagementorDashboard() {
             <ChevronRight className="w-4 h-4 text-gray-400" />
           </div>
 
-          {/* Evaluaties */}
           <div className="bg-white border border-gray-200 rounded-lg flex items-center justify-between px-5 py-4 cursor-pointer">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gray-900 grid place-items-center rounded flex-shrink-0">
