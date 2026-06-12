@@ -44,6 +44,12 @@ export default function EvaluatieDetailPage() {
   };
 
   const handleAnnuleren = () => {
+    const confirmed = window.confirm(
+      "Ben je zeker dat je deze evaluatie wilt annuleren? Alle scores en commentaren gaan verloren.",
+    );
+
+    if (!confirmed) return;
+
     setScores(COMPETENTIES.map(() => null));
     setCommentaren(COMPETENTIES.map(() => ""));
   };
