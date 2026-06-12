@@ -20,8 +20,29 @@ export default function DocumentenPage() {
             <div className="bg-gray-100 px-4 py-2 text-xs text-gray-500">
               {student.naam}
             </div>
+            <div className="border-x border-b border-gray-200 rounded-b-lg bg-white">
+              <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">
+                    Stageovereenkomst
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Geüpload op 15/09/2025
+                  </p>
+                </div>
+              </div>
 
-            <div className="border-x border-b border-gray-200 rounded-b-lg h-24 bg-white" />
+              <div className="flex items-center justify-between px-4 py-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">
+                    Eindverslag
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Geüpload op 20/01/2026
+                  </p>
+                </div>
+              </div>
+            </div>{" "}
           </div>
         ))}
       </div>
