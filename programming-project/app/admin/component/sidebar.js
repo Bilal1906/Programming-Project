@@ -52,7 +52,7 @@ export default function Sidebar({ user }) {
         .join("")
         .slice(0, 2)
         .toUpperCase()
-    : "AD";
+    : "RD";
 
   return (
     <aside className="w-52 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col py-5 h-screen sticky top-0">
@@ -130,7 +130,7 @@ export default function Sidebar({ user }) {
         </div>
         <div className="min-w-0">
           <div className="text-xs font-semibold text-gray-900 truncate">
-            {user?.name ?? "Admin Gebruiker"}
+            {user?.name ?? "Ruben Dejonckheere"}
           </div>
           <div className="text-xs text-gray-400">Admin</div>
         </div>
