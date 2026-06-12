@@ -1,4 +1,5 @@
 import Topbar from "../component/topbar";
+import Link from "next/link";
 
 export default function StagePage() {
   const stages = [
@@ -67,9 +68,9 @@ export default function StagePage() {
               </button>
             </div>
 
-            <button className="bg-[#1e3a5f] text-white px-4 py-2 rounded-md text-sm">
-              + Nieuwe stage
-            </button>
+              <Link href="/admin/stage/nieuw" className="bg-[#1e3a5f] text-white px-4 py-2 rounded-md text-sm">
+                + Nieuwe stage
+              </Link>
           </div>
 
           {/* Tabel */}
