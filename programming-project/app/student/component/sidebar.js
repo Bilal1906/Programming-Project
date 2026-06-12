@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { href: '/student/dashboard-first', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+  { href: '/student/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
   { href: '/student/mijn-stage', label: 'Mijn Stage', icon: <FileText className="w-4 h-4" /> },
   { href: '/student/logboeken', label: 'Logboeken', icon: <BookOpen className="w-4 h-4" /> },
   { href: '/student/evaluaties', label: 'Evaluaties', icon: <Star className="w-4 h-4" /> },
@@ -44,7 +44,7 @@ export default function Sidebar({ user }) {
         {navItems.map((item) => {
           const isDisabled = isDashboardFirst && disabledItems.includes(item.href);
           const isActive = item.href === '/student/dashboard-first'
-            ? pathname === '/student/dashboard-first'
+            ? pathname === '/student/dashboard-first' || pathname === '/student/dashboard'
             : pathname.startsWith(item.href);
 
           if (isDisabled) {
