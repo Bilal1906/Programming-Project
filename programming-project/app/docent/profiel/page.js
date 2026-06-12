@@ -20,10 +20,10 @@ export default function DocentProfiel() {
   }
 
   const handleUitloggen = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('rol')
+    document.cookie = 'token=; path=/; max-age=0'
+    document.cookie = 'rol=; path=/; max-age=0'
     router.push('/authentificator/login')
-  }
+   }
 
   const inputStyle = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
 

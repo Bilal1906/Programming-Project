@@ -20,8 +20,8 @@ export default function Profiel() {
   }
 
   const handleUitloggen = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('rol')
+    document.cookie = 'token=; path=/; max-age=0'
+    document.cookie = 'rol=; path=/; max-age=0'
     router.push('/authentificator/login')
   }
 
