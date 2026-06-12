@@ -19,6 +19,7 @@ export function middleware(request) {
     return NextResponse.redirect(new URL('/authentificator/login', request.url))
   }
 
+  // Rol beveiliging
   if (pathname.startsWith('/student') && rol !== 'student') {
     return NextResponse.redirect(new URL('/authentificator/login', request.url))
   }
