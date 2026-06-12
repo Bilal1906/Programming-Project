@@ -3,7 +3,7 @@ import db from '@/app/lib/db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'geheim_sleutel_verander_dit';
 
-export async function GET(request) {
+export async function GET(request, { params }) {
   try {
     const token = request.headers.get("authorization")?.replace("Bearer ", "");
     if (!token) {
@@ -12,6 +12,7 @@ export async function GET(request) {
 
     const payload = jwt.verify(token, JWT_SECRET);
     const stagementor_id = payload.stagementor_id;
+    const { id: stage_id } = await params;
 
     const [rows] = await db.query(
       `SELECT 
@@ -28,13 +29,17 @@ export async function GET(request) {
       LEFT JOIN user du ON d.user_id = du.id
       LEFT JOIN stagementor sm ON stage.stagementor_id = sm.id
       LEFT JOIN bedrijf b ON sm.bedrijf_id = b.id
-      WHERE stage.stagementor_id = ?`,
-      [stagementor_id]
+      WHERE stage.id = ? AND stage.stagementor_id = ?`,
+      [stage_id, stagementor_id]
     );
 
-    return Response.json(rows);
+    if (rows.length === 0) {
+      return Response.json({ fout: "Niet gevonden" }, { status: 404 });
+    }
+
+    return Response.json(rows[0]);
   } catch (error) {
-    console.error("LIJST ERROR:", error);
+    console.error("DETAIL ERROR:", error);
     return Response.json({ fout: error.message }, { status: 500 });
   }
 }
