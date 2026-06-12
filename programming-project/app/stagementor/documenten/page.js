@@ -30,6 +30,8 @@ export default function DocumentenPage() {
                     Geüpload op 15/09/2025
                   </p>
                 </div>
+
+                <span className="text-sm text-green-600">Goedgekeurd</span>
               </div>
 
               <div className="flex items-center justify-between px-4 py-4">
@@ -41,6 +43,8 @@ export default function DocumentenPage() {
                     Geüpload op 20/01/2026
                   </p>
                 </div>
+
+                <span className="text-sm text-amber-600">In afwachting</span>
               </div>
             </div>{" "}
           </div>
