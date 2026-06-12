@@ -46,15 +46,70 @@ export default function DocumentPage() {
           {/* Sidebar */}
           <div className="col-span-3">
             <div className="flex flex-col gap-4">
-              <div className="bg-[#2563eb] text-white rounded-md px-4 py-2 text-sm font-medium">
+              <button className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-md px-4 py-2 text-sm font-medium">
                 Downloaden
+              </button>
+
+              <div className="bg-white border border-gray-200 rounded-lg">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    Documentinfo
+                  </h3>
+                </div>
+
+                <div className="p-4 space-y-3 text-sm">
+                  <div>
+                    <p className="text-gray-400 text-xs">Type</p>
+                    <p className="text-gray-700">Stageovereenkomst</p>
+                  </div>
+
+                  <div>
+                    <p className="text-gray-400 text-xs">Status</p>
+                    <p className="text-green-600 font-medium">
+                      Goedgekeurd
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-gray-400 text-xs">
+                      Laatst gewijzigd
+                    </p>
+                    <p className="text-gray-700">03/02/2025</p>
+                  </div>
+                </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg h-64" />
+              <div className="bg-white border border-gray-200 rounded-lg">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    Partijen
+                  </h3>
+                </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg h-48" />
+                <div className="p-4 space-y-3 text-sm">
+                  <div>
+                    <p className="text-gray-400 text-xs">Student</p>
+                    <p className="text-gray-700">Bilal Jaaboub</p>
+                  </div>
+
+                  <div>
+                    <p className="text-gray-400 text-xs">Bedrijf</p>
+                    <p className="text-gray-700">
+                      Bedrijfsnaam BV
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-gray-400 text-xs">Stagementor</p>
+                    <p className="text-gray-700">
+                      Steve Weemaels
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+          {/* End sidebar */}
         </div>
       </div>
     </div>
