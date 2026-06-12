@@ -68,12 +68,45 @@ export default function Documenten() {
                     </div>
                     <div className="flex items-center gap-2">
                       {statusBadge(doc.status)}
-                      <button className="text-xs px-3 py-1 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 cursor-pointer flex items-center gap-1">
+                      <button className="text-xs px-3 py-1 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 cursor-pointer">
                         ↓ Download
                       </button>
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Mijn uploads */}
+            <div className="bg-white rounded-xl p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-4">Mijn uploads</h2>
+              <div className="space-y-3 mb-4">
+                {mijnUploads.map((doc) => (
+                  <div key={doc.naam} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs">📄</span>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{doc.naam}</div>
+                        <div className="text-xs text-gray-400">{doc.info}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {statusBadge(doc.status)}
+                      <button className="text-xs px-3 py-1 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 cursor-pointer">
+                        ↓ Download
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Upload zone */}
+              <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:bg-gray-50 cursor-pointer">
+                <div className="text-3xl mb-2">☁️</div>
+                <div className="text-sm font-medium text-gray-700 mb-1">Nieuw document uploaden</div>
+                <div className="text-xs text-gray-400">Sleep een bestand hierheen of klik om te bladeren · PDF, DOCX · max 10MB</div>
               </div>
             </div>
 
@@ -104,6 +137,40 @@ export default function Documenten() {
                 <span className="font-semibold text-[#1e3a5f]">4/5</span>
               </div>
             </div>
+
+            {/* Deadlines */}
+            <div className="bg-white rounded-xl p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-3">Deadlines</h2>
+              <div className="space-y-2">
+                {[
+                  { label: 'Stageovereenkomst', status: 'Ingediend', kleur: 'text-green-600' },
+                  { label: 'Tussentijds verslag', status: 'Ingediend', kleur: 'text-green-600' },
+                  { label: 'Eindverslag', status: '23 mei 2025', kleur: 'text-yellow-600' },
+                ].map((item) => (
+                  <div key={item.label} className="flex justify-between text-sm">
+                    <span className="text-gray-600">{item.label}</span>
+                    <span className={`font-medium ${item.kleur}`}>
+                      {item.status === 'Ingediend' ? '✓ ' : ''}{item.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Info */}
+            <div className="bg-white rounded-xl p-5">
+              <h2 className="text-sm font-semibold text-gray-800 mb-3">Info</h2>
+              <p className="text-xs text-gray-500 leading-relaxed mb-2">
+                De <strong>stageovereenkomst</strong> is cruciaal voor je verzekering. Zorg dat dit document correct ondertekend is door alle partijen.
+              </p>
+              <p className="text-xs text-gray-500">
+                Vragen over documenten? Contacteer <strong>Joachim Quartier</strong> via{' '}
+                <a href="mailto:joachim.quartier@ehb.be" className="text-blue-500 hover:underline">
+                  joachim.quartier@ehb.be
+                </a>
+              </p>
+            </div>
+
           </div>
         </div>
 
