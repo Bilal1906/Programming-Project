@@ -50,7 +50,9 @@ export default function DocentSidebar() {
         })}
       </nav>
 
-      <div className="flex items-center gap-2.5 px-4 py-3 border-t border-gray-100 mt-2">
+      <Link href="/docent/profiel" className={`flex items-center gap-2.5 px-4 py-3 border-t border-gray-100 mt-2 hover:bg-gray-50 ${
+        pathname === '/docent/profiel' ? 'bg-[#eef2ff]' : ''
+      }`}>
         <div className="w-8 h-8 rounded-full bg-[#c7d2e8] grid place-items-center text-xs font-bold text-[#1e3a5f] flex-shrink-0">
           JQ
         </div>
@@ -58,7 +60,7 @@ export default function DocentSidebar() {
           <div className="text-xs font-semibold text-gray-900 truncate">Joachim Quartier</div>
           <div className="text-xs text-gray-400">Docent</div>
         </div>
-      </div>
+      </Link>
     </aside>
   )
 }
