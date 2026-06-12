@@ -12,7 +12,7 @@ const STUDENTEN = [
 export default function DocumentenPage() {
   return (
     <div>
-      <Topbar title="Documenten" subtitle="2025–2026" />
+      <Topbar title="Documenten" subtitle="2025 - 2026" />
 
       <div className="p-6 flex flex-col gap-6">
         {STUDENTEN.map((student) => (
