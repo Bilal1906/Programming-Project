@@ -21,6 +21,9 @@ export default function StageDetailPage() {
     mentorEmail: 'steve.weemaels@accenture.com',
     mentorTelefoon: '+32 470 99 88 77',
     mentorFunctie: 'Senior Software Engineer',
+    opdracht: 'Ontwikkeling van interne tooling voor projectopvolging met React en .NET. Focus op API-integraties en unit testing.',
+    startdatum: '2025-02-03',
+    einddatum: '2025-06-27',
     feedback: '',
   });
 
@@ -36,7 +39,9 @@ export default function StageDetailPage() {
 
       <div className="flex-1 p-6 bg-gray-50 overflow-y-auto">
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Stage bewerken</h2>
-        <p className="text-sm text-gray-400 mb-6">Bekijk en pas de stagegegevens aan</p>
+        <p className="text-sm text-gray-400 mb-6">
+          Bekijk en pas de stagegegevens aan
+        </p>
 
         <div className="flex gap-6">
           <div className="flex-1 flex flex-col gap-6">
@@ -119,7 +124,26 @@ export default function StageDetailPage() {
               </div>
             </div>
 
-            <Link href="/admin/stage" className="text-sm text-gray-500 hover:text-gray-900">
+            {/* Opdracht & periode */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+              <h3 className="text-sm font-semibold text-gray-500 mb-4">Opdracht & periode</h3>
+              <div className="mb-4">
+                <label className="text-xs text-gray-400 block mb-1">Omschrijving van de opdracht</label>
+                <textarea value={form.opdracht} onChange={(e) => update('opdracht', e.target.value)} rows={3} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+              </div>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Startdatum</label>
+                  <input type="date" value={form.startdatum} onChange={(e) => update('startdatum', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Einddatum</label>
+                  <input type="date" value={form.einddatum} onChange={(e) => update('einddatum', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+              </div>
+            </div>
+
+            <Link href="/admin/stage" className="text-sm text-gray-500 hover:text-gray-900 mb-4">
               ← Terug naar overzicht
             </Link>
           </div>
