@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Topbar from '../../component/topbar';
 
 export default function StudentBewerkenPage() {
+  const router = useRouter();
+
   const [form, setForm] = useState({
     voornaam: 'Bilal',
     achternaam: 'Jaaboub',
@@ -23,6 +26,17 @@ export default function StudentBewerkenPage() {
       ...form,
       [veld]: waarde,
     });
+  };
+
+  const handleOpslaan = () => {
+    if (window.confirm('Wijzigingen opslaan?')) {
+      alert('Opgeslagen!');
+      router.push('/admin/studenten');
+    }
+  };
+
+  const handleAnnuleren = () => {
+    router.push('/admin/studenten');
   };
 
   const inputClass =
@@ -181,6 +195,22 @@ export default function StudentBewerkenPage() {
               />
             </div>
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={handleAnnuleren}
+            className="bg-white border border-gray-200 text-gray-700 text-sm px-5 py-2.5 rounded-lg font-medium hover:bg-gray-50"
+          >
+            Annuleren
+          </button>
+
+          <button
+            onClick={handleOpslaan}
+            className="bg-[#1A2E4A] text-white text-sm px-5 py-2.5 rounded-lg font-medium hover:bg-[#152438]"
+          >
+            Opslaan
+          </button>
         </div>
       </div>
     </main>
