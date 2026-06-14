@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import Topbar from '../component/topbar';
 
@@ -39,7 +42,15 @@ const stages = [
   },
 ];
 
+const filters = ['Alle', 'Te beoordelen', 'Aanpassingen', 'Goedgekeurd', 'Actief', 'Geen aanvraag'];
+
 export default function StagePage() {
+  const [actieveFilter, setActieveFilter] = useState('Alle');
+
+  const gefilterd = actieveFilter === 'Alle'
+    ? stages
+    : stages.filter((s) => actieveFilter === 'Te beoordelen' ? s.status === 'Ingediend' : s.status === actieveFilter);
+
   return (
     <main className="flex-1 flex flex-col">
       <Topbar title="Stage" />
@@ -53,6 +64,23 @@ export default function StagePage() {
           >
             + Nieuwe stage
           </Link>
+        </div>
+
+        {/* Filters */}
+        <div className="flex gap-2 mb-6">
+          {filters.map((f) => (
+            <button
+              key={f}
+              onClick={() => setActieveFilter(f)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                actieveFilter === f
+                  ? 'bg-[#1A2E4A] text-white border-[#1A2E4A]'
+                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {f}
+            </button>
+          ))}
         </div>
 
         {/* Tabel */}
@@ -69,7 +97,7 @@ export default function StagePage() {
               </tr>
             </thead>
             <tbody>
-              {stages.map((s) => (
+              {gefilterd.map((s) => (
                 <tr key={s.student} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <td className="px-5 py-4 font-medium text-gray-900">{s.student}</td>
                   <td className="px-5 py-4 text-gray-600">{s.bedrijf}</td>
@@ -86,6 +114,13 @@ export default function StagePage() {
                   </td>
                 </tr>
               ))}
+              {gefilterd.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-5 py-8 text-center text-gray-400">
+                    Geen stages gevonden voor dit filter.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
