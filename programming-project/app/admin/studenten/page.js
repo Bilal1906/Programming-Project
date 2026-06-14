@@ -194,7 +194,7 @@ export default function StudentenPage() {
         {bewerkModus && (
           <div className="flex justify-center mt-6">
             <Link
-              href="/admin/studenten/student-bewerken"
+              href="/admin/studenten/student-nieuw"
               className="w-12 h-12 rounded-full bg-[#1A2E4A] text-white text-2xl font-light grid place-items-center hover:bg-[#152438] shadow-md transition-colors"
               title="Student toevoegen"
             >
