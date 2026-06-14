@@ -1,14 +1,40 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Topbar from '../component/topbar';
+import { useState } from "react";
+import Link from "next/link";
+import Topbar from "../component/topbar";
 
 const initieleDocenten = [
-  { naam: 'Steve Weemaels', email: 'steve.weemaels@docent.ehb.be', telefoon: '+32 470 11 22 33', vakken: 'ETJB, PE1, PE2, ...' },
-  { naam: 'David van Steertegem', email: 'david.vansteertegem@docent.ehb.be', telefoon: '+32 471 22 33 44', vakken: 'PE1, PE2' },
-  { naam: 'Tom Aertssens', email: 'tom.aertssens@student.ehb.be', telefoon: '+32 472 33 44 55', vakken: 'Web essentials' },
-  { naam: 'Joachiem Quartier', email: 'joachiem.quartier@docent.ehb.be', telefoon: '+32 473 44 55 66', vakken: 'PSD1, PE1, PE2, ...' },
-  { naam: 'Herman Gillaerts', email: 'herman.gillaerts@docent.ehb.be', telefoon: '+32 474 55 66 77', vakken: 'PSD' },
+  {
+    naam: "Steve Weemaels",
+    email: "steve.weemaels@docent.ehb.be",
+    telefoon: "+32 470 11 22 33",
+    vakken: "ETJB, PE1, PE2, ...",
+  },
+  {
+    naam: "David van Steertegem",
+    email: "david.vansteertegem@docent.ehb.be",
+    telefoon: "+32 471 22 33 44",
+    vakken: "PE1, PE2",
+  },
+  {
+    naam: "Tom Aertssens",
+    email: "tom.aertssens@student.ehb.be",
+    telefoon: "+32 472 33 44 55",
+    vakken: "Web essentials",
+  },
+  {
+    naam: "Joachiem Quartier",
+    email: "joachiem.quartier@docent.ehb.be",
+    telefoon: "+32 473 44 55 66",
+    vakken: "PSD1, PE1, PE2, ...",
+  },
+  {
+    naam: "Herman Gillaerts",
+    email: "herman.gillaerts@docent.ehb.be",
+    telefoon: "+32 474 55 66 77",
+    vakken: "PSD",
+  },
 ];
 
 export default function DocentenPage() {
@@ -17,31 +43,29 @@ export default function DocentenPage() {
 
   const toggleSelectie = (naam) => {
     setGeselecteerd((prev) =>
-      prev.includes(naam)
-        ? prev.filter((n) => n !== naam)
-        : [...prev, naam]
+      prev.includes(naam) ? prev.filter((n) => n !== naam) : [...prev, naam],
     );
   };
 
   const handleVerwijder = () => {
     if (geselecteerd.length === 0) {
-      alert('Selecteer minstens één docent.');
+      alert("Selecteer minstens één docent.");
       return;
     }
 
     if (
       window.confirm(
-        `Weet u zeker dat u ${geselecteerd.length} docent(en) wilt verwijderen?`
+        `Weet u zeker dat u ${geselecteerd.length} docent(en) wilt verwijderen?`,
       )
     ) {
-      alert('Verwijderd!');
+      alert("Verwijderd!");
       setGeselecteerd([]);
       setBewerkModus(false);
     }
   };
 
   const handleVoltooien = () => {
-    alert('Wijzigingen opgeslagen!');
+    alert("Wijzigingen opgeslagen!");
     setGeselecteerd([]);
     setBewerkModus(false);
   };
@@ -94,9 +118,7 @@ export default function DocentenPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                {bewerkModus && (
-                  <th className="px-5 py-3 w-10"></th>
-                )}
+                {bewerkModus && <th className="px-5 py-3 w-10"></th>}
 
                 <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
                   Docent
@@ -113,6 +135,8 @@ export default function DocentenPage() {
                 <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
                   Vak(ken)
                 </th>
+
+                <th className="text-right px-5 py-3 text-xs font-medium text-gray-400"></th>
               </tr>
             </thead>
 
@@ -137,22 +161,52 @@ export default function DocentenPage() {
                     {d.naam}
                   </td>
 
-                  <td className="px-5 py-4 text-gray-600">
-                    {d.email}
-                  </td>
+                  <td className="px-5 py-4 text-gray-600">{d.email}</td>
 
-                  <td className="px-5 py-4 text-gray-600">
-                    {d.telefoon}
-                  </td>
+                  <td className="px-5 py-4 text-gray-600">{d.telefoon}</td>
 
-                  <td className="px-5 py-4 text-gray-600">
-                    {d.vakken}
+                  <td className="px-5 py-4 text-gray-600">{d.vakken}</td>
+
+                  <td className="px-5 py-4 text-right">
+                    {bewerkModus && (
+                      <Link
+                        href="/admin/docenten/docent-bewerken"
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-[#1A2E4A]"
+                        title="Bewerken"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        {bewerkModus && (
+          <div className="flex justify-center mt-6">
+            <Link
+              href="/admin/docenten/docent-nieuw"
+              className="w-12 h-12 rounded-full bg-[#1A2E4A] text-white text-2xl font-light grid place-items-center hover:bg-[#152438] shadow-md transition-colors"
+              title="Docent toevoegen"
+            >
+              +
+            </Link>
+          </div>
+        )}
       </div>
     </main>
   );
