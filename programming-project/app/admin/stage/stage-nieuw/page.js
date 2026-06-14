@@ -16,6 +16,10 @@ export default function StageNieuwPage() {
     adres: '',
     sector: '',
     website: '',
+    opdracht: '',
+    startdatum: '',
+    einddatum: '',
+    mentor: '',
     mentorVoornaam: '',
     mentorAchternaam: '',
     mentorEmail: '',
@@ -36,6 +40,7 @@ export default function StageNieuwPage() {
         </p>
 
         <div className="flex gap-6">
+          {/* Linkerkolom */}
           <div className="flex-1 flex flex-col gap-6">
 
             {/* Sectie 1 – Studentgegevens */}
@@ -116,28 +121,51 @@ export default function StageNieuwPage() {
               </div>
             </div>
 
-            <Link href="/admin/stage" className="text-sm text-gray-500 hover:text-gray-900">
+            {/* Sectie 3 – Opdracht & periode */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+              <h3 className="text-sm font-semibold text-gray-500 mb-4">Sectie 3 – Opdracht & periode</h3>
+              <div className="mb-4">
+                <label className="text-xs text-gray-400 block mb-1">Omschrijving van de opdracht</label>
+                <textarea value={form.opdracht} onChange={(e) => update('opdracht', e.target.value)} placeholder="Beschrijf de stageopdracht..." rows={3} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+              </div>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Startdatum</label>
+                  <input type="date" value={form.startdatum} onChange={(e) => update('startdatum', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Einddatum</label>
+                  <input type="date" value={form.einddatum} onChange={(e) => update('einddatum', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+              </div>
+            </div>
+
+            <Link href="/admin/stage" className="text-sm text-gray-500 hover:text-gray-900 mb-4">
               ← Terug naar overzicht
             </Link>
           </div>
 
           {/* Rechterkolom */}
           <div className="w-72 flex flex-col gap-6">
+
+            {/* Stagementor */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <h3 className="text-sm font-bold text-gray-900 mb-1">Stagementor</h3>
               <p className="text-xs text-gray-400 mb-4">De docent die de student zal opvolgen tijdens de stage.</p>
               <label className="text-xs text-gray-400 block mb-1">Docent voor deze stage</label>
-              <select value={form.docent} onChange={(e) => update('docent', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent">
+              <select value={form.docent} onChange={(e) => update('docent', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 mb-3 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent">
                 <option value="">Selecteer docent</option>
                 <option value="Joachim Quartier">Joachim Quartier</option>
                 <option value="Tom Aertssens">Tom Aertssens</option>
               </select>
             </div>
 
+            {/* Beoordeling */}
             <div className="bg-orange-50 rounded-xl border border-orange-100 p-5">
               <h3 className="text-sm font-bold text-gray-900 mb-4">Beoordeling</h3>
               <button onClick={() => { if (window.confirm('Weet u zeker dat u deze stage wilt bevestigen?')) alert('Stage bevestigd!'); }} className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[#1A2E4A] hover:bg-[#152438] transition-colors">Bevestigen</button>
             </div>
+
           </div>
         </div>
       </div>
