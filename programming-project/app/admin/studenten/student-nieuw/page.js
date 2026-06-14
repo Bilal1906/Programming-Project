@@ -40,6 +40,132 @@ export default function StudentNieuwPage() {
         </p>
 
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">
+                Voornaam
+              </label>
+              <input
+                type="text"
+                value={form.voornaam}
+                onChange={(e) => update('voornaam', e.target.value)}
+                placeholder="Voornaam"
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">
+                Achternaam
+              </label>
+              <input
+                type="text"
+                value={form.achternaam}
+                onChange={(e) => update('achternaam', e.target.value)}
+                placeholder="Achternaam"
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => update('email', e.target.value)}
+                placeholder="naam@student.ehb.be"
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">
+                Wachtwoord
+              </label>
+              <input
+                type="text"
+                value={form.wachtwoord}
+                onChange={(e) => update('wachtwoord', e.target.value)}
+                placeholder="Tijdelijk wachtwoord"
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">
+                Telefoon
+              </label>
+              <input
+                type="tel"
+                value={form.telefoon}
+                onChange={(e) => update('telefoon', e.target.value)}
+                placeholder="+32 ..."
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">
+                Rol
+              </label>
+              <input
+                type="text"
+                value={form.rol}
+                onChange={(e) => update('rol', e.target.value)}
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">
+                Opleiding
+              </label>
+              <input
+                type="text"
+                value={form.opleiding}
+                onChange={(e) => update('opleiding', e.target.value)}
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">
+                Academiejaar
+              </label>
+              <input
+                type="text"
+                value={form.academiejaar}
+                onChange={(e) => {
+                  let v = e.target.value.replace(/[^0-9\-\s]/g, '');
+
+                  if (v.length === 4 && !v.includes('-')) {
+                    v += ' - ';
+                  }
+
+                  if (v.length <= 11) {
+                    update('academiejaar', v);
+                  }
+                }}
+                placeholder="bv. 2025 - 2026"
+                className={inputClass}
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="text-xs text-gray-400 block mb-1">
+                Adres
+              </label>
+              <input
+                type="text"
+                value={form.adres}
+                onChange={(e) => update('adres', e.target.value)}
+                placeholder="Straat, postcode, stad"
+                className={inputClass}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </main>
