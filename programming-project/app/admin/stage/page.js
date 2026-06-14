@@ -123,7 +123,7 @@ export default function StagePage() {
                       </Link>
                     ) : (
                       <Link
-                        href="/admin/stage/stage-nieuw"
+                        href="/admin/stage/stage-detail"
                         className="text-sm text-blue-600 hover:underline font-medium"
                       >
                         Detail
