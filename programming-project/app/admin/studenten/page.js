@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Topbar from '../component/topbar';
 
 const initialeStudenten = [
@@ -11,6 +12,8 @@ const initialeStudenten = [
 ];
 
 export default function StudentenPage() {
+  const [bewerkModus, setBewerkModus] = useState(false);
+
   return (
     <main className="flex-1 flex flex-col">
       <Topbar title="Student" />
@@ -24,6 +27,32 @@ export default function StudentenPage() {
             <p className="text-sm text-gray-400">
               Voeg toe, bewerk en verwijder één of meerdere student(en)
             </p>
+          </div>
+
+          <div className="flex gap-2">
+            {bewerkModus ? (
+              <>
+                <button
+                  className="bg-[#DC2626] text-white text-sm px-5 py-2 rounded-lg font-medium hover:bg-[#B91C1C]"
+                >
+                  Verwijderen
+                </button>
+
+                <button
+                  onClick={() => setBewerkModus(false)}
+                  className="bg-[#1A2E4A] text-white text-sm px-5 py-2 rounded-lg font-medium hover:bg-[#152438]"
+                >
+                  Voltooien
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setBewerkModus(true)}
+                className="bg-[#1A2E4A] text-white text-sm px-5 py-2 rounded-lg font-medium hover:bg-[#152438]"
+              >
+                Bewerken
+              </button>
+            )}
           </div>
         </div>
 
