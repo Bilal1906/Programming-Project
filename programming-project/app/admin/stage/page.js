@@ -5,7 +5,7 @@ export default function StagePage() {
     <>
       <Topbar title="Stage" />
 
-      <div className="p-6">
+      <div className="flex-1 p-6">
       </div>
     </>
   );
