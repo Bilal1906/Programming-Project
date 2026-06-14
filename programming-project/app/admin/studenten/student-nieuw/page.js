@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Topbar from '../../component/topbar';
 
 export default function StudentNieuwPage() {
+  const router = useRouter();
+
   const [form, setForm] = useState({
     voornaam: '',
     achternaam: '',
@@ -16,11 +19,26 @@ export default function StudentNieuwPage() {
     adres: '',
   });
 
-  const update = (veld, waarde) => {
+  const update = (veld, waarde) =>
     setForm({
       ...form,
       [veld]: waarde,
     });
+
+  const handleAanmaken = () => {
+    if (!form.voornaam || !form.achternaam || !form.email) {
+      alert('Vul minstens voornaam, achternaam en email in.');
+      return;
+    }
+
+    if (window.confirm('Weet u zeker dat u deze student wilt aanmaken?')) {
+      alert('Student aangemaakt!');
+      router.push('/admin/studenten');
+    }
+  };
+
+  const handleAnnuleren = () => {
+    router.push('/admin/studenten');
   };
 
   const inputClass =
@@ -166,6 +184,22 @@ export default function StudentNieuwPage() {
               />
             </div>
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={handleAnnuleren}
+            className="bg-white border border-gray-200 text-gray-700 text-sm px-5 py-2.5 rounded-lg font-medium hover:bg-gray-50"
+          >
+            Annuleren
+          </button>
+
+          <button
+            onClick={handleAanmaken}
+            className="bg-[#1A2E4A] text-white text-sm px-5 py-2.5 rounded-lg font-medium hover:bg-[#152438]"
+          >
+            Aanmaken
+          </button>
         </div>
       </div>
     </main>
