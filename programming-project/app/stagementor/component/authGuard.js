@@ -1,40 +1,42 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AuthGuard({ children }) {
   const router = useRouter();
   const [toegestaan, setToegestaan] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-
+    const token = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("token="))
+      ?.split("=")[1];
     if (!token) {
-      router.replace('/authentificator/login');
+      router.replace("/authentificator/login");
       return;
     }
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(token.split(".")[1]));
 
       // token verlopen?
       if (payload.exp && Date.now() >= payload.exp * 1000) {
-        localStorage.removeItem('token');
-        router.replace('/authentificator/login');
+        localStorage.removeItem("token");
+        router.replace("/authentificator/login");
         return;
       }
 
       // juiste rol? (enkel stagementor mag hier)
-      if (payload.rol !== 'stagementor') {
-        router.replace('/authentificator/login');
+      if (payload.rol !== "stagementor") {
+        router.replace("/authentificator/login");
         return;
       }
 
       setToegestaan(true);
     } catch {
-      localStorage.removeItem('token');
-      router.replace('/authentificator/login');
+      localStorage.removeItem("token");
+      router.replace("/authentificator/login");
     }
   }, [router]);
 
