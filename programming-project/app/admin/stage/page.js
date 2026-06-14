@@ -11,6 +11,7 @@ const stages = [
     mentor: 'Steve Weemaels',
     periode: '3 feb – 27 jun 2025',
     status: 'Ingediend',
+    statusKleur: '#92400E',
   },
   {
     student: 'Syrine Benamar',
@@ -18,6 +19,7 @@ const stages = [
     mentor: 'David Van Steertegem',
     periode: '1 mrt – 30 jun 2025',
     status: 'Aanpassingen',
+    statusKleur: '#9A3412',
   },
   {
     student: 'Yagiz Biçer',
@@ -25,6 +27,7 @@ const stages = [
     mentor: 'Steve Weemaels',
     periode: '10 feb – 20 jun 2025',
     status: 'Goedgekeurd',
+    statusKleur: '#065F46',
   },
   {
     student: 'Nassim El Ghzaoui',
@@ -32,6 +35,7 @@ const stages = [
     mentor: 'David Van Steertegem',
     periode: '20 jan – 30 mei 2025',
     status: 'Actief',
+    statusKleur: '#1E40AF',
   },
   {
     student: 'Soufiane Jay-Yufi',
@@ -39,6 +43,7 @@ const stages = [
     mentor: '—',
     periode: '—',
     status: 'Geen aanvraag',
+    statusKleur: '#64748B',
   },
 ];
 
@@ -103,14 +108,27 @@ export default function StagePage() {
                   <td className="px-5 py-4 text-gray-600">{s.bedrijf}</td>
                   <td className="px-5 py-4 text-gray-600">{s.mentor}</td>
                   <td className="px-5 py-4 text-gray-600">{s.periode}</td>
-                  <td className="px-5 py-4 text-gray-600">{s.status}</td>
+                  <td className="px-5 py-4">
+                    <span className="text-sm" style={{ color: s.statusKleur }}>
+                      {s.status}
+                    </span>
+                  </td>
                   <td className="px-5 py-4 text-right">
-                    <Link
-                      href="/admin/stage/stage-nieuw"
-                      className="text-sm text-blue-600 hover:underline font-medium"
-                    >
-                      Detail
-                    </Link>
+                    {s.status === 'Geen aanvraag' ? (
+                      <Link
+                        href="/admin/stage/stage-nieuw"
+                        className="text-sm text-gray-500 hover:text-gray-900 font-medium"
+                      >
+                        Aanmaken
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/admin/stage/stage-nieuw"
+                        className="text-sm text-blue-600 hover:underline font-medium"
+                      >
+                        Detail
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}
