@@ -12,6 +12,15 @@ export default function StageNieuwPage() {
     email: '',
     telefoon: '',
     docent: '',
+    bedrijfsnaam: '',
+    adres: '',
+    sector: '',
+    website: '',
+    mentorVoornaam: '',
+    mentorAchternaam: '',
+    mentorEmail: '',
+    mentorTelefoon: '',
+    mentorFunctie: '',
   });
 
   const update = (veld, waarde) => setForm({ ...form, [veld]: waarde });
@@ -56,6 +65,53 @@ export default function StageNieuwPage() {
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Telefoon</label>
                   <input type="tel" value={form.telefoon} onChange={(e) => update('telefoon', e.target.value)} placeholder="+32 ..." className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+              </div>
+            </div>
+
+            {/* Sectie 2 – Bedrijfsgegevens */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+              <h3 className="text-sm font-semibold text-gray-500 mb-4">Sectie 2 – Bedrijfsgegevens</h3>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Bedrijfsnaam</label>
+                  <input type="text" value={form.bedrijfsnaam} onChange={(e) => update('bedrijfsnaam', e.target.value)} placeholder="Naam van het bedrijf" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Adres</label>
+                  <input type="text" value={form.adres} onChange={(e) => update('adres', e.target.value)} placeholder="Straat, postcode, stad" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Sector</label>
+                  <input type="text" value={form.sector} onChange={(e) => update('sector', e.target.value)} placeholder="bv. IT-consultancy" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Website</label>
+                  <input type="url" value={form.website} onChange={(e) => update('website', e.target.value)} placeholder="https://..." className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+              </div>
+
+              <h4 className="text-sm font-semibold text-gray-500 mt-6 mb-4">Bedrijfsmentor</h4>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Voornaam</label>
+                  <input type="text" value={form.mentorVoornaam} onChange={(e) => update('mentorVoornaam', e.target.value)} placeholder="Voornaam mentor" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Achternaam</label>
+                  <input type="text" value={form.mentorAchternaam} onChange={(e) => update('mentorAchternaam', e.target.value)} placeholder="Achternaam mentor" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">E-mail</label>
+                  <input type="email" value={form.mentorEmail} onChange={(e) => update('mentorEmail', e.target.value)} placeholder="mentor@bedrijf.be" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Telefoon</label>
+                  <input type="tel" value={form.mentorTelefoon} onChange={(e) => update('mentorTelefoon', e.target.value)} placeholder="+32 ..." className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Functie</label>
+                  <input type="text" value={form.mentorFunctie} onChange={(e) => update('mentorFunctie', e.target.value)} placeholder="bv. Senior Software Engineer" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" />
                 </div>
               </div>
             </div>
