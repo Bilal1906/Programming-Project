@@ -93,7 +93,7 @@ export default function DocentenPage() {
                   onClick={handleVerwijder}
                   className="bg-[#DC2626] text-white text-sm px-5 py-2 rounded-lg font-medium hover:bg-[#B91C1C]"
                 >
-                  Verwijder
+                  Verwijderen
                 </button>
 
                 <button
