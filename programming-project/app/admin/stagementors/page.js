@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Topbar from '../component/topbar';
 
 const initieleStagementors = [
@@ -11,6 +12,40 @@ const initieleStagementors = [
 ];
 
 export default function StagementorsPage() {
+  const [bewerkModus, setBewerkModus] = useState(false);
+  const [geselecteerd, setGeselecteerd] = useState([]);
+
+  const toggleSelectie = (naam) => {
+    setGeselecteerd((prev) =>
+      prev.includes(naam)
+        ? prev.filter((n) => n !== naam)
+        : [...prev, naam]
+    );
+  };
+
+  const handleVerwijder = () => {
+    if (geselecteerd.length === 0) {
+      alert('Selecteer minstens één stagementor.');
+      return;
+    }
+
+    if (
+      window.confirm(
+        `Weet u zeker dat u ${geselecteerd.length} stagementor(en) wilt verwijderen?`
+      )
+    ) {
+      alert('Verwijderd!');
+      setGeselecteerd([]);
+      setBewerkModus(false);
+    }
+  };
+
+  const handleVoltooien = () => {
+    alert('Wijzigingen opgeslagen!');
+    setGeselecteerd([]);
+    setBewerkModus(false);
+  };
+
   return (
     <main className="flex-1 flex flex-col">
       <Topbar title="Stagementor" />
@@ -30,12 +65,41 @@ export default function StagementorsPage() {
               Na goedkeuring moet de student een ondertekende stageovereenkomst uploaden.
             </p>
           </div>
+
+          <div className="flex gap-2">
+            {bewerkModus ? (
+              <>
+                <button
+                  onClick={handleVerwijder}
+                  className="bg-[#DC2626] text-white text-sm px-5 py-2 rounded-lg font-medium hover:bg-[#B91C1C]"
+                >
+                  Verwijder
+                </button>
+
+                <button
+                  onClick={handleVoltooien}
+                  className="bg-[#1A2E4A] text-white text-sm px-5 py-2 rounded-lg font-medium hover:bg-[#152438]"
+                >
+                  Voltooien
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setBewerkModus(true)}
+                className="bg-[#1A2E4A] text-white text-sm px-5 py-2 rounded-lg font-medium hover:bg-[#152438]"
+              >
+                Bewerken
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
+                {bewerkModus && <th className="px-5 py-3 w-10"></th>}
+
                 <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
                   Stagementor
                 </th>
@@ -60,6 +124,17 @@ export default function StagementorsPage() {
                   key={m.naam}
                   className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
                 >
+                  {bewerkModus && (
+                    <td className="px-5 py-4">
+                      <input
+                        type="checkbox"
+                        checked={geselecteerd.includes(m.naam)}
+                        onChange={() => toggleSelectie(m.naam)}
+                        className="w-4 h-4 accent-[#1A2E4A] cursor-pointer"
+                      />
+                    </td>
+                  )}
+
                   <td className="px-5 py-4 font-medium text-gray-900">
                     {m.naam}
                   </td>
