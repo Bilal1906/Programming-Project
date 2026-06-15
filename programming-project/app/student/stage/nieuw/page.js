@@ -6,6 +6,8 @@ import Topbar from '../../component/topbar'
 
 export default function NieuweStageAanvraag() {
   const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [fout, setFout] = useState('')
 
   const [bedrijf, setBedrijf] = useState({
     naam: '', adres: '', sector: '', website: '', telefoon: ''
@@ -16,23 +18,62 @@ export default function NieuweStageAanvraag() {
   })
 
   const [opdracht, setOpdracht] = useState({
-    omschrijving: '', startdatum: '2025-02-03', einddatum: '2025-05-23'
+    omschrijving: '', startdatum: '', einddatum: ''
   })
-
-  const [fout, setFout] = useState('')
 
   const handleIndienen = async (e) => {
     e.preventDefault()
     setFout('')
 
-    if (!bedrijf.naam || !bedrijf.adres || !mentor.naam || !mentor.email || !opdracht.omschrijving) {
+    if (!bedrijf.naam || !bedrijf.adres || !mentor.naam || !mentor.email || !opdracht.omschrijving || !opdracht.startdatum || !opdracht.einddatum) {
       setFout('Vul alle verplichte velden in!')
       return
     }
 
-    // Later: API call
-    console.log('Stage indienen:', { bedrijf, mentor, opdracht })
-    router.push('/student/dashboard-first')
+    setLoading(true)
+
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1] || localStorage.getItem('token')
+
+    try {
+      const response = await fetch('/api/student/stage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          bedrijf_naam: bedrijf.naam,
+          bedrijf_adres: bedrijf.adres,
+          bedrijf_sector: bedrijf.sector,
+          bedrijf_website: bedrijf.website,
+          bedrijf_telefoon: bedrijf.telefoon,
+          mentor_naam: mentor.naam,
+          mentor_functie: mentor.functie,
+          mentor_email: mentor.email,
+          mentor_telefoon: mentor.telefoon,
+          opdracht_omschrijving: opdracht.omschrijving,
+          startdatum: opdracht.startdatum,
+          einddatum: opdracht.einddatum,
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setFout(data.fout)
+        setLoading(false)
+        return
+      }
+
+      router.push('/student/stage')
+
+    } catch (error) {
+      setFout('Er is een fout opgetreden. Probeer opnieuw.')
+      setLoading(false)
+    }
   }
 
   const inputStyle = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
@@ -81,19 +122,19 @@ export default function NieuweStageAanvraag() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelStyle}>Naam</label>
-                <input className={inputStyle} value="Bilal Jaaboub" disabled />
+                <input className={`${inputStyle} bg-gray-50`} value="Bilal Jaaboub" disabled />
               </div>
               <div>
                 <label className={labelStyle}>Opleiding</label>
-                <input className={inputStyle} value="Toegepaste Informatica" disabled />
+                <input className={`${inputStyle} bg-gray-50`} value="Toegepaste Informatica" disabled />
               </div>
               <div>
                 <label className={labelStyle}>Academiejaar</label>
-                <input className={inputStyle} value="2025-2026" disabled />
+                <input className={`${inputStyle} bg-gray-50`} value="2025-2026" disabled />
               </div>
               <div>
                 <label className={labelStyle}>E-mailadres</label>
-                <input className={inputStyle} value="bilal.jaaboub@ehb.be" disabled />
+                <input className={`${inputStyle} bg-gray-50`} value="bilal.jaaboub@ehb.be" disabled />
               </div>
             </div>
           </div>
@@ -115,7 +156,7 @@ export default function NieuweStageAanvraag() {
               </div>
               <div>
                 <label className={labelStyle}>Sector</label>
-                <input className={inputStyle} placeholder="bv. IT-consultancy, Fintech" value={bedrijf.sector} onChange={e => setBedrijf({...bedrijf, sector: e.target.value})} />
+                <input className={inputStyle} placeholder="bv. IT-consultancy" value={bedrijf.sector} onChange={e => setBedrijf({...bedrijf, sector: e.target.value})} />
               </div>
               <div>
                 <label className={labelStyle}>Website</label>
@@ -141,7 +182,7 @@ export default function NieuweStageAanvraag() {
               </div>
               <div>
                 <label className={labelStyle}>Functie</label>
-                <input className={inputStyle} placeholder="bv. Software Engineer, HR Manager" value={mentor.functie} onChange={e => setMentor({...mentor, functie: e.target.value})} />
+                <input className={inputStyle} placeholder="bv. Software Engineer" value={mentor.functie} onChange={e => setMentor({...mentor, functie: e.target.value})} />
               </div>
               <div>
                 <label className={labelStyle}>E-mail mentor *</label>
@@ -165,7 +206,7 @@ export default function NieuweStageAanvraag() {
               <label className={labelStyle}>Omschrijving van de opdracht *</label>
               <textarea
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 h-24 resize-none"
-                placeholder="Beschrijf de stageactiviteiten, gebruikte technologieën, doelstellingen en verwachte resultaten..."
+                placeholder="Beschrijf de stageactiviteiten..."
                 value={opdracht.omschrijving}
                 onChange={e => setOpdracht({...opdracht, omschrijving: e.target.value})}
               />
@@ -208,9 +249,10 @@ export default function NieuweStageAanvraag() {
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-sm bg-[#1e3a5f] text-white rounded-lg hover:bg-[#162d4a] cursor-pointer font-medium"
+                disabled={loading}
+                className="px-5 py-2 text-sm bg-[#1e3a5f] text-white rounded-lg hover:bg-[#162d4a] cursor-pointer font-medium disabled:opacity-50"
               >
-                Aanvraag indienen
+                {loading ? 'Bezig...' : 'Aanvraag indienen'}
               </button>
             </div>
           </div>
