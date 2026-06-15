@@ -50,7 +50,7 @@ export default function DocentenPage() {
             </p>
           </div>
 
-          <button className="bg-[#1A2E4A] text-white px-6 py-3 rounded-md text-sm font-medium hover:bg-[#243d61] transition">
+          <button className="bg-[#1A2E4A] text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-[#243d61]">
             Bewerken
           </button>
         </div>
