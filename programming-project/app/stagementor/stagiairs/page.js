@@ -10,7 +10,10 @@ export default function StagiairsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1] || localStorage.getItem('token')
     if (token) {
       fetch('/api/stagementor/stagiairs', {
         headers: { Authorization: `Bearer ${token}` }
