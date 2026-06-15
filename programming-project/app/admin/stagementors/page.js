@@ -62,9 +62,6 @@ export default function StagementorsPage() {
               Voeg toe, bewerk en verwijder één of meerdere stagementor(s)
             </p>
 
-            <p className="text-sm text-gray-400">
-              Na goedkeuring moet de student een ondertekende stageovereenkomst uploaden.
-            </p>
           </div>
 
           <div className="flex gap-2">
