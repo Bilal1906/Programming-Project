@@ -1,10 +1,51 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Topbar from '../component/topbar'
 
-export default function StudentDashboard() {
+export default function StudentDashboardFirst() {
   const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [gebruiker, setGebruiker] = useState(null)
+
+  useEffect(() => {
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1] || localStorage.getItem('token')
+
+    if (!token) {
+      router.push('/authentificator/login')
+      return
+    }
+
+    // Token decoderen
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    setGebruiker(payload)
+
+    // Controleren of student al een stage heeft
+    fetch('/api/student/stage', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0 && data[0].status === 'actief') {
+          router.push('/student/dashboard')
+        } else {
+          setLoading(false)
+        }
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-100">
+        <div className="text-sm text-gray-400">Laden...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex-1 flex flex-col">
@@ -24,7 +65,9 @@ export default function StudentDashboard() {
           </svg>
         </div>
 
-        <h2 className="text-xl font-bold mb-3">Welkom terug, Bilal 👋</h2>
+        <h2 className="text-xl font-bold mb-3">
+          Welkom terug, {gebruiker?.voornaam ?? 'Student'} 👋
+        </h2>
         <p className="text-gray-500 text-sm text-center max-w-md mb-8 leading-relaxed">
           Je hebt nog geen stageaanvraag ingediend. Dien je voorstel in om het goedkeuringsproces te starten.
           Logboeken en evaluaties worden beschikbaar na goedkeuring.
@@ -60,9 +103,10 @@ export default function StudentDashboard() {
         </div>
 
         <div className="flex gap-4 text-sm text-gray-500">
-          <span className="font-semibold text-gray-800">Bilal Jaaboub</span>
-          <span>bilal@student.ehb.be</span>
-          <span>Toegepaste Informatica 3</span>
+          <span className="font-semibold text-gray-800">
+            {gebruiker?.voornaam} {gebruiker?.achternaam}
+          </span>
+          <span>{gebruiker?.email}</span>
         </div>
 
       </div>
