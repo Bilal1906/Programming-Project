@@ -17,6 +17,10 @@ export default function StagementorBewerkenPage() {
     timeOfCreation: '03/03/2026 16:04',
     bedrijfsId: '#62',
     functie: 'IT consultant',
+    bedrijfsnaam: 'Cegeka',
+    adres: 'Leuvensesteenweg 245, Zaventem, Vlaanderen',
+    sector: 'IT',
+    website: 'Cegeka.com',
   });
 
   const update = (veld, waarde) => setForm({ ...form, [veld]: waarde });
@@ -40,7 +44,8 @@ export default function StagementorBewerkenPage() {
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Stagementor bewerken</h2>
         <p className="text-sm text-gray-400 mb-6">Bewerk de gegevens van een stagementor</p>
 
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        {/* Persoonlijke gegevens */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6">
           <p className="text-xs text-gray-400 mb-4">{form.voornaam} {form.achternaam}</p>
           <hr className="border-gray-100 mb-6" />
 
@@ -84,6 +89,31 @@ export default function StagementorBewerkenPage() {
             <div>
               <label className="text-xs text-gray-400 block mb-1">Functie</label>
               <input type="text" value={form.functie} onChange={(e) => update('functie', e.target.value)} className={inputClass} />
+            </div>
+          </div>
+        </div>
+
+        {/* Bedrijfsgegevens */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <p className="text-xs text-gray-400 mb-4">{form.bedrijfsnaam}</p>
+          <hr className="border-gray-100 mb-6" />
+
+          <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Naam</label>
+              <input type="text" value={form.bedrijfsnaam} onChange={(e) => update('bedrijfsnaam', e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Adres</label>
+              <input type="text" value={form.adres} onChange={(e) => update('adres', e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Sector</label>
+              <input type="text" value={form.sector} onChange={(e) => update('sector', e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Website</label>
+              <input type="text" value={form.website} onChange={(e) => update('website', e.target.value)} className={inputClass} />
             </div>
           </div>
         </div>
