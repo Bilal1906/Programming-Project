@@ -1,39 +1,93 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Topbar from '../component/topbar';
 
 export default function ProfielPage() {
   const router = useRouter();
+  const [gebruiker, setGebruiker] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [vorig, setVorig] = useState('');
   const [nieuw, setNieuw] = useState('');
   const [bevestig, setBevestig] = useState('');
+  const [bericht, setBericht] = useState('');
+  const [fout, setFout] = useState('');
 
-  const handleOpslaan = () => {
+  useEffect(() => {
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1] || localStorage.getItem('token');
+
+    if (!token) {
+      router.push('/authentificator/login');
+      return;
+    }
+
+    fetch('/api/user/profiel', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setGebruiker(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const handleOpslaan = async () => {
+    setFout('');
+    setBericht('');
+
     if (!vorig || !nieuw || !bevestig) {
-      alert('Vul alle velden in.');
+      setFout('Vul alle velden in.');
       return;
     }
     if (nieuw !== bevestig) {
-      alert('De nieuwe wachtwoorden komen niet overeen.');
+      setFout('De nieuwe wachtwoorden komen niet overeen.');
       return;
     }
-    if (window.confirm('Wachtwoord opslaan?')) {
-      alert('Wachtwoord opgeslagen!');
+
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1] || localStorage.getItem('token');
+
+    const response = await fetch('/api/user/profiel', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ huidigWachtwoord: vorig, nieuwWachtwoord: nieuw })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setFout(data.fout);
+    } else {
+      setBericht('Wachtwoord succesvol gewijzigd!');
       setVorig(''); setNieuw(''); setBevestig('');
     }
   };
 
   const handleUitloggen = () => {
-    if (window.confirm('Weet u zeker dat u wilt uitloggen?')) {
-      document.cookie = 'token=; path=/; max-age=0';
-      document.cookie = 'rol=; path=/; max-age=0';
-      router.push('/authentificator/login');
-    }
+    document.cookie = 'token=; path=/; max-age=0';
+    document.cookie = 'rol=; path=/; max-age=0';
+    router.push('/authentificator/login');
   };
 
   const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent";
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className="text-sm text-gray-400">Laden...</div>
+      </div>
+    );
+  }
 
   return (
     <main className="flex-1 flex flex-col">
@@ -46,10 +100,10 @@ export default function ProfielPage() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-[#B5D4F4] text-[#0C447C] grid place-items-center text-xl font-bold flex-shrink-0">
-                RD
+                {gebruiker?.voornaam?.[0]}{gebruiker?.achternaam?.[0]}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Ruben Dejonckheere</h2>
+                <h2 className="text-xl font-bold text-gray-900">{gebruiker?.voornaam} {gebruiker?.achternaam}</h2>
                 <p className="text-sm text-gray-500">Admin</p>
                 <p className="text-xs text-gray-400 mt-1">Erasmus Hogeschool Brussel</p>
               </div>
@@ -62,19 +116,19 @@ export default function ProfielPage() {
             <div className="grid grid-cols-2 gap-x-6 gap-y-5">
               <div>
                 <p className="text-xs text-gray-400 mb-1">Voornaam</p>
-                <p className="text-sm font-medium text-gray-900">Ruben</p>
+                <p className="text-sm font-medium text-gray-900">{gebruiker?.voornaam}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">Achternaam</p>
-                <p className="text-sm font-medium text-gray-900">Dejonckheere</p>
+                <p className="text-sm font-medium text-gray-900">{gebruiker?.achternaam}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">E-mailadres</p>
-                <p className="text-sm font-medium text-gray-900">ruben.dejonckheere@docent.ehb.be</p>
+                <p className="text-sm font-medium text-gray-900">{gebruiker?.email}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">Telefoon</p>
-                <p className="text-sm font-medium text-gray-900">+32 475 23 45 67</p>
+                <p className="text-sm font-medium text-gray-900">{gebruiker?.telefoon}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">School</p>
@@ -103,6 +157,8 @@ export default function ProfielPage() {
                 <label className="text-xs text-gray-400 block mb-1">Bevestig nieuw wachtwoord</label>
                 <input type="password" value={bevestig} onChange={(e) => setBevestig(e.target.value)} placeholder="Herhaal uw nieuwe wachtwoord" className={inputClass} />
               </div>
+              {fout && <p className="text-red-500 text-xs">{fout}</p>}
+              {bericht && <p className="text-green-500 text-xs">{bericht}</p>}
               <div>
                 <button onClick={handleOpslaan} className="bg-[#1a56db] text-white text-sm px-5 py-2.5 rounded-lg font-medium hover:bg-[#1849b8]">
                   Wachtwoord opslaan
@@ -122,6 +178,7 @@ export default function ProfielPage() {
               Uitloggen
             </button>
           </div>
+
         </div>
       </div>
     </main>

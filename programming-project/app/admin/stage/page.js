@@ -1,70 +1,74 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Topbar from '../component/topbar';
 
-const stages = [
-  {
-    student: 'Bilal Jaaboub',
-    bedrijf: 'Accenture Belgium',
-    mentor: 'Steve Weemaels',
-    periode: '3 feb – 27 jun 2025',
-    status: 'Ingediend',
-    statusKleur: '#92400E',
-  },
-  {
-    student: 'Syrine Benamar',
-    bedrijf: 'Delaware',
-    mentor: 'David Van Steertegem',
-    periode: '1 mrt – 30 jun 2025',
-    status: 'Aanpassingen',
-    statusKleur: '#9A3412',
-  },
-  {
-    student: 'Yagiz Biçer',
-    bedrijf: 'Cegeka',
-    mentor: 'Steve Weemaels',
-    periode: '10 feb – 20 jun 2025',
-    status: 'Goedgekeurd',
-    statusKleur: '#065F46',
-  },
-  {
-    student: 'Nassim El Ghzaoui',
-    bedrijf: 'Ordina',
-    mentor: 'David Van Steertegem',
-    periode: '20 jan – 30 mei 2025',
-    status: 'Actief',
-    statusKleur: '#1E40AF',
-  },
-  {
-    student: 'Soufiane Jay-Yufi',
-    bedrijf: '—',
-    mentor: '—',
-    periode: '—',
-    status: 'Geen aanvraag',
-    statusKleur: '#64748B',
-  },
-];
+const filters = ['Alle', 'Te beoordelen', 'Aanpassingen', 'Goedgekeurd', 'Actief', 'Afgekeurd'];
 
-const filters = ['Alle', 'Te beoordelen', 'Aanpassingen', 'Goedgekeurd', 'Actief', 'Geen aanvraag'];
+const statusKleur = (status) => {
+  switch (status) {
+    case 'ingediend': return '#92400E';
+    case 'aanpassingen': return '#9A3412';
+    case 'goedgekeurd': return '#065F46';
+    case 'actief': return '#1E40AF';
+    case 'afgekeurd': return '#DC2626';
+    default: return '#64748B';
+  }
+};
 
 export default function StagePage() {
+  const router = useRouter();
+  const [stages, setStages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [actieveFilter, setActieveFilter] = useState('Alle');
+
+  useEffect(() => {
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1] || localStorage.getItem('token');
+
+    if (!token) {
+      router.push('/authentificator/login');
+      return;
+    }
+
+    fetch('/api/admin/stages', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setStages(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   const gefilterd = actieveFilter === 'Alle'
     ? stages
-    : stages.filter((s) => actieveFilter === 'Te beoordelen' ? s.status === 'Ingediend' : s.status === actieveFilter);
+    : actieveFilter === 'Te beoordelen'
+    ? stages.filter(s => s.status === 'ingediend')
+    : stages.filter(s => s.status === actieveFilter.toLowerCase());
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className="text-sm text-gray-400">Laden...</div>
+      </div>
+    );
+  }
 
   return (
     <main className="flex-1 flex flex-col">
       <Topbar title="Stage" />
 
       <div className="flex-1 p-6 bg-gray-50">
-        {/* Nieuwe stage knop */}
+
         <div className="flex justify-end mb-6">
           <Link
-            href="/admin/stage/stage-nieuw"
+            href="/admin/stage/nieuw"
             className="bg-[#1A2E4A] text-white text-sm px-4 py-2 rounded-lg font-medium hover:bg-[#152438]"
           >
             + Nieuwe stage
@@ -95,7 +99,7 @@ export default function StagePage() {
               <tr className="border-b border-gray-100">
                 <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Student</th>
                 <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Bedrijf</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Mentor (stage)</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Mentor</th>
                 <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Periode</th>
                 <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Status</th>
                 <th className="text-right px-5 py-3 text-xs font-medium text-gray-400"></th>
@@ -103,32 +107,25 @@ export default function StagePage() {
             </thead>
             <tbody>
               {gefilterd.map((s) => (
-                <tr key={s.student} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-4 font-medium text-gray-900">{s.student}</td>
-                  <td className="px-5 py-4 text-gray-600">{s.bedrijf}</td>
-                  <td className="px-5 py-4 text-gray-600">{s.mentor}</td>
-                  <td className="px-5 py-4 text-gray-600">{s.periode}</td>
+                <tr key={s.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                  <td className="px-5 py-4 font-medium text-gray-900">{s.student_voornaam} {s.student_achternaam}</td>
+                  <td className="px-5 py-4 text-gray-600">{s.bedrijf_naam}</td>
+                  <td className="px-5 py-4 text-gray-600">{s.mentor_voornaam} {s.mentor_achternaam}</td>
+                  <td className="px-5 py-4 text-gray-600">
+                    {new Date(s.startdatum).toLocaleDateString('nl-BE')} – {new Date(s.einddatum).toLocaleDateString('nl-BE')}
+                  </td>
                   <td className="px-5 py-4">
-                    <span className="text-sm" style={{ color: s.statusKleur }}>
-                      {s.status}
+                    <span className="text-sm" style={{ color: statusKleur(s.status) }}>
+                      {s.status.charAt(0).toUpperCase() + s.status.slice(1)}
                     </span>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    {s.status === 'Geen aanvraag' ? (
-                      <Link
-                        href="/admin/stage/stage-nieuw"
-                        className="text-sm text-gray-500 hover:text-gray-900 font-medium"
-                      >
-                        Aanmaken
-                      </Link>
-                    ) : (
-                      <Link
-                        href="/admin/stage/stage-detail"
-                        className="text-sm text-blue-600 hover:underline font-medium"
-                      >
-                        Detail
-                      </Link>
-                    )}
+                    <Link
+                      href={`/admin/stage/${s.id}`}
+                      className="text-sm text-blue-600 hover:underline font-medium"
+                    >
+                      Detail
+                    </Link>
                   </td>
                 </tr>
               ))}
