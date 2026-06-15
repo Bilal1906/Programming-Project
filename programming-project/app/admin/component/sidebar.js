@@ -94,8 +94,8 @@ export default function Sidebar({ user }) {
 
       <nav className="flex flex-col flex-1">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
-
+          const isActive =
+            pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}
