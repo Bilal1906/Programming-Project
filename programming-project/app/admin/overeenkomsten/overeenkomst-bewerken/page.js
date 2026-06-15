@@ -83,6 +83,25 @@ export default function OvereenkomstBewerkenPage() {
     });
   };
 
+  const handleOpslaan = () => {
+    if (
+      !form.studentNaam ||
+      !form.docentNaam ||
+      !form.mentorNaam ||
+      !form.bedrijfNaam
+    ) {
+      alert(
+        'Alle velden moeten ingevuld zijn. Selecteer een student, docent en stagementor.'
+      );
+      return;
+    }
+
+    if (window.confirm('Wijzigingen opslaan?')) {
+      alert('Opgeslagen!');
+      router.push('/admin/overeenkomsten');
+    }
+  };
+
   const inputClass =
     'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent';
 
@@ -102,6 +121,7 @@ export default function OvereenkomstBewerkenPage() {
         </p>
 
         <div className="grid grid-cols-2 gap-6">
+          {/* Student */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <p className="text-xs text-gray-400 mb-4">Student</p>
             <hr className="border-gray-100 mb-6" />
@@ -125,26 +145,17 @@ export default function OvereenkomstBewerkenPage() {
 
               <div>
                 <label className="text-xs text-gray-400 block mb-1">Email</label>
-                <input
-                  type="email"
-                  value={form.studentEmail}
-                  readOnly
-                  className={readonlyClass}
-                />
+                <input type="email" value={form.studentEmail} readOnly className={readonlyClass} />
               </div>
 
               <div>
                 <label className="text-xs text-gray-400 block mb-1">Opleiding</label>
-                <input
-                  type="text"
-                  value={form.studentOpleiding}
-                  readOnly
-                  className={readonlyClass}
-                />
+                <input type="text" value={form.studentOpleiding} readOnly className={readonlyClass} />
               </div>
             </div>
           </div>
 
+          {/* Docent */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <p className="text-xs text-gray-400 mb-4">Docent</p>
             <hr className="border-gray-100 mb-6" />
@@ -168,26 +179,17 @@ export default function OvereenkomstBewerkenPage() {
 
               <div>
                 <label className="text-xs text-gray-400 block mb-1">Email</label>
-                <input
-                  type="email"
-                  value={form.docentEmail}
-                  readOnly
-                  className={readonlyClass}
-                />
+                <input type="email" value={form.docentEmail} readOnly className={readonlyClass} />
               </div>
 
               <div>
                 <label className="text-xs text-gray-400 block mb-1">Telefoon</label>
-                <input
-                  type="tel"
-                  value={form.docentTelefoon}
-                  readOnly
-                  className={readonlyClass}
-                />
+                <input type="tel" value={form.docentTelefoon} readOnly className={readonlyClass} />
               </div>
             </div>
           </div>
 
+          {/* Stagementor */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <p className="text-xs text-gray-400 mb-4">Stagementor</p>
             <hr className="border-gray-100 mb-6" />
@@ -211,16 +213,12 @@ export default function OvereenkomstBewerkenPage() {
 
               <div>
                 <label className="text-xs text-gray-400 block mb-1">Email</label>
-                <input
-                  type="email"
-                  value={form.mentorEmail}
-                  readOnly
-                  className={readonlyClass}
-                />
+                <input type="email" value={form.mentorEmail} readOnly className={readonlyClass} />
               </div>
             </div>
           </div>
 
+          {/* Bedrijf */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <p className="text-xs text-gray-400 mb-4">Bedrijf</p>
             <hr className="border-gray-100 mb-6" />
@@ -228,25 +226,31 @@ export default function OvereenkomstBewerkenPage() {
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-xs text-gray-400 block mb-1">Naam</label>
-                <input
-                  type="text"
-                  value={form.bedrijfNaam}
-                  readOnly
-                  className={readonlyClass}
-                />
+                <input type="text" value={form.bedrijfNaam} readOnly className={readonlyClass} />
               </div>
 
               <div>
                 <label className="text-xs text-gray-400 block mb-1">Email</label>
-                <input
-                  type="email"
-                  value={form.bedrijfEmail}
-                  readOnly
-                  className={readonlyClass}
-                />
+                <input type="email" value={form.bedrijfEmail} readOnly className={readonlyClass} />
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={() => router.push('/admin/overeenkomsten')}
+            className="bg-white border border-gray-200 text-gray-700 text-sm px-5 py-2.5 rounded-lg font-medium hover:bg-gray-50"
+          >
+            Annuleren
+          </button>
+
+          <button
+            onClick={handleOpslaan}
+            className="bg-[#1A2E4A] text-white text-sm px-6 py-2.5 rounded-lg font-medium hover:bg-[#152438]"
+          >
+            Opslaan
+          </button>
         </div>
       </div>
     </main>
