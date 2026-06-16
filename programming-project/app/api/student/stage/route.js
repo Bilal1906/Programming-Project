@@ -1,22 +1,16 @@
 import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
-import jwt from 'jsonwebtoken'
-
-const JWT_SECRET = process.env.JWT_SECRET || 'geheim_sleutel_verander_dit'
+import { verifyToken, checkRol } from '@/app/lib/auth'
 
 export async function GET(request) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
-    }
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
 
-    const token = authHeader.split(' ')[1]
-    const payload = jwt.verify(token, JWT_SECRET)
+    const rolFout = checkRol(auth.payload, ['student'])
+    if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
-    if (payload.rol !== 'student') {
-      return NextResponse.json({ fout: 'Geen toegang' }, { status: 403 })
-    }
+    const payload = auth.payload
 
     const [rijen] = await db.query(`
       SELECT 
@@ -61,17 +55,13 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
-    }
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
 
-    const token = authHeader.split(' ')[1]
-    const payload = jwt.verify(token, JWT_SECRET)
+    const rolFout = checkRol(auth.payload, ['student'])
+    if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
-    if (payload.rol !== 'student') {
-      return NextResponse.json({ fout: 'Geen toegang' }, { status: 403 })
-    }
+    const payload = auth.payload
 
     const body = await request.json()
     const {
@@ -80,39 +70,33 @@ export async function POST(request) {
       opdracht_omschrijving, startdatum, einddatum
     } = body
 
-    // Student ID ophalen
     const [studentRijen] = await db.query(
       'SELECT id FROM student WHERE user_id = ?',
       [payload.id]
     )
     const student_id = studentRijen[0].id
 
-    // Docent ophalen (eerste beschikbare)
     const [docentRijen] = await db.query('SELECT id FROM docent LIMIT 1')
     const docent_id = docentRijen[0].id
 
-    // Bedrijf aanmaken
     const [bedrijfResult] = await db.query(
       'INSERT INTO bedrijf (naam, adres, sector, website, telefoon) VALUES (?, ?, ?, ?, ?)',
       [bedrijf_naam, bedrijf_adres, bedrijf_sector, bedrijf_website, bedrijf_telefoon]
     )
     const bedrijf_id = bedrijfResult.insertId
 
-    // Stagementor user aanmaken
     const [mentorUserResult] = await db.query(
       'INSERT INTO user (voornaam, achternaam, email, telefoon, rol) VALUES (?, ?, ?, ?, ?)',
       [mentor_naam.split(' ')[0], mentor_naam.split(' ')[1] || '', mentor_email, mentor_telefoon, 'stagementor']
     )
     const mentor_user_id = mentorUserResult.insertId
 
-    // Stagementor aanmaken
     const [mentorResult] = await db.query(
       'INSERT INTO stagementor (user_id, bedrijf_id, functie) VALUES (?, ?, ?)',
       [mentor_user_id, bedrijf_id, mentor_functie]
     )
     const stagementor_id = mentorResult.insertId
 
-    // Stage aanmaken
     await db.query(
       `INSERT INTO stage 
         (student_id, docent_id, stagementor_id, opdracht_omschrijving, startdatum, einddatum, status, ingediend_op) 
