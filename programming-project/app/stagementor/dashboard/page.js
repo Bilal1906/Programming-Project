@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Topbar from '../component/topbar';
 import { ChevronRight, BookOpen, Star, Users } from 'lucide-react';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function StagementorDashboard() {
   const [user, setUser] = useState(null);
@@ -12,17 +13,18 @@ export default function StagementorDashboard() {
     const token = document.cookie
       .split('; ')
       .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token')
+      ?.split('=')[1] || localStorage.getItem('token');
+
     if (token) {
       const payload = JSON.parse(atob(token.split('.')[1]));
       setUser(payload);
-
-      fetch('/api/stagementor/stagiairs', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => setStagiairs(data));
     }
+
+    fetchMetAuth('/api/stagementor/stagiairs')
+      .then(res => res?.json())
+      .then(data => {
+        if (data) setStagiairs(data);
+      });
   }, []);
 
   const getInitials = (voornaam, achternaam) => {
@@ -35,7 +37,6 @@ export default function StagementorDashboard() {
 
       <div className="p-6 flex flex-col gap-3">
 
-        {/* WELKOM */}
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-gray-900">
             Welkom terug, {user ? user.voornaam : '...'}
@@ -45,10 +46,8 @@ export default function StagementorDashboard() {
           </p>
         </div>
 
-        {/* LABEL */}
         <p className="text-xs text-gray-400">Mijn stagiairs</p>
 
-        {/* STAGIAIRS DYNAMISCH */}
         {stagiairs.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-lg px-5 py-10 flex flex-col items-center gap-2">
             <div className="w-12 h-12 bg-gray-100 rounded-full grid place-items-center mb-1">
@@ -78,7 +77,6 @@ export default function StagementorDashboard() {
           ))
         )}
 
-        {/* ACTIE KAARTEN */}
         <div className="grid grid-cols-2 gap-3">
 
           <div className="bg-white border border-gray-200 rounded-lg flex items-center justify-between px-5 py-4 cursor-pointer">

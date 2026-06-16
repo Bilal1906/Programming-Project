@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Topbar from '../../component/topbar';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 const NIVEAUS = [
   { score: 1, label: 'Onvoldoende', kleur: '#dc2626' },
@@ -37,21 +38,10 @@ export default function EvaluatieDetailPage() {
   const [commentaren, setCommentaren] = useState(COMPETENTIES.map(() => ''));
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    if (!token) {
-      router.push('/authentificator/login');
-      return;
-    }
-
-    fetch('/api/stagementor/evaluaties', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/stagementor/evaluaties')
+      .then(res => res?.json())
       .then(data => {
+        if (!data) return;
         const gevonden = data.find(e => e.id === parseInt(id));
         setEvaluatie(gevonden);
         setLoading(false);
@@ -75,17 +65,8 @@ export default function EvaluatieDetailPage() {
     setFout('');
     setBezig(true);
 
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    const response = await fetch('/api/stagementor/evaluaties', {
+    const response = await fetchMetAuth('/api/stagementor/evaluaties', {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
       body: JSON.stringify({
         evaluatie_id: parseInt(id),
         feedback: '',
@@ -96,6 +77,8 @@ export default function EvaluatieDetailPage() {
         }))
       })
     });
+
+    if (!response) return;
 
     const data = await response.json();
 
@@ -140,7 +123,6 @@ export default function EvaluatieDetailPage() {
 
       <div className="p-6 flex flex-col gap-4">
 
-        {/* TABS */}
         <div className="flex gap-6 border-b border-gray-200">
           <button
             onClick={() => setTab('tussentijds')}
@@ -162,7 +144,6 @@ export default function EvaluatieDetailPage() {
 
         {tab === 'tussentijds' ? (
           <>
-            {/* RUBRIEK */}
             <div className="flex items-center gap-5 flex-wrap">
               <span className="text-xs font-semibold text-gray-500">Rubriek:</span>
               {NIVEAUS.map((n) => (
@@ -178,7 +159,6 @@ export default function EvaluatieDetailPage() {
               ))}
             </div>
 
-            {/* COMPETENTIES */}
             <div className="flex flex-col gap-4">
               {COMPETENTIES.map((competentie, index) => (
                 <div key={index} className="border border-gray-200 rounded-md bg-white overflow-hidden">
