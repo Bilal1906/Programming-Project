@@ -31,26 +31,15 @@ export async function middleware(request) {
   try {
     const { payload } = await jwtVerify(token, SECRET)
     const prefix = Object.keys(ROUTE_ROLES).find(p => pathname.startsWith(p))
-    // on lit le rôle du token SIGNÉ, jamais du cookie
     if (prefix && payload.rol !== ROUTE_ROLES[prefix]) {
       return NextResponse.redirect(new URL('/authentificator/login', request.url))
     }
     return NextResponse.next()
   } catch {
-  if (pathname.startsWith('/student') && rol !== 'student') {
-    return NextResponse.redirect(new URL('/authentificator/login', request.url))
-  }
-  if (pathname.startsWith('/docent') && rol !== 'docent') {
-    return NextResponse.redirect(new URL('/authentificator/login', request.url))
-  }
-  if (pathname.startsWith('/stagementor') && rol !== 'stagementor') {
-    return NextResponse.redirect(new URL('/authentificator/login', request.url))
-  }
-  if (pathname.startsWith('/admin') && rol !== 'admin') {
     return NextResponse.redirect(new URL('/authentificator/login', request.url))
   }
 }
 
 export const config = {
   matcher: ['/student/:path*', '/docent/:path*', '/stagementor/:path*', '/admin/:path*'],
-} 
+}
