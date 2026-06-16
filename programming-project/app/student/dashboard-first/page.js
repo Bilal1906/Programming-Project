@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Topbar from '../component/topbar'
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth'
 
 export default function StudentDashboardFirst() {
   const router = useRouter()
@@ -20,17 +21,13 @@ export default function StudentDashboardFirst() {
       return
     }
 
-    // Token decoderen
     const payload = JSON.parse(atob(token.split('.')[1]))
     setGebruiker(payload)
 
-    // Controleren of student al een stage heeft
-    fetch('/api/student/stage', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/student/stage')
+      .then(res => res?.json())
       .then(data => {
-        if (data.length > 0 && data[0].status === 'actief') {
+        if (data && data.length > 0 && data[0].status === 'actief') {
           router.push('/student/dashboard')
         } else {
           setLoading(false)
@@ -54,9 +51,7 @@ export default function StudentDashboardFirst() {
         subtitel="2025-2026 · Toegepaste Informatica"
         rechts="Geen actieve stage"
       />
-
       <div className="flex-1 flex flex-col items-center justify-center bg-gray-100 p-8">
-
         <div className="mb-6">
           <svg width="48" height="48" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
             <rect width="120" height="120" rx="20" fill="#1a2340"/>
@@ -64,15 +59,10 @@ export default function StudentDashboardFirst() {
             <polyline points="65,68 75,80 95,55" fill="none" stroke="#4ade80" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-
-        <h2 className="text-xl font-bold mb-3">
-          Welkom terug, {gebruiker?.voornaam ?? 'Student'} 👋
-        </h2>
+        <h2 className="text-xl font-bold mb-3">Welkom terug, {gebruiker?.voornaam ?? 'Student'} 👋</h2>
         <p className="text-gray-500 text-sm text-center max-w-md mb-8 leading-relaxed">
           Je hebt nog geen stageaanvraag ingediend. Dien je voorstel in om het goedkeuringsproces te starten.
-          Logboeken en evaluaties worden beschikbaar na goedkeuring.
         </p>
-
         <div className="flex gap-4 mb-8">
           <button
             onClick={() => router.push('/student/stage')}
@@ -87,28 +77,6 @@ export default function StudentDashboardFirst() {
             Stageaanvraag indienen
           </button>
         </div>
-
-        <div className="flex gap-4 mb-6">
-          {[
-            { icon: '📋', label: 'Logboeken', sub: 'Dagelijks bijhouden' },
-            { icon: '⭐', label: 'Evaluaties', sub: 'Tussentijds & finaal' },
-            { icon: '📄', label: 'Documenten', sub: 'Overeenkomsten' },
-          ].map((item) => (
-            <div key={item.label} className="bg-white rounded-xl p-5 text-center opacity-50 min-w-32 shadow-sm">
-              <div className="text-2xl mb-1">{item.icon}</div>
-              <div className="font-semibold text-sm">{item.label}</div>
-              <div className="text-gray-400 text-xs">{item.sub}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-4 text-sm text-gray-500">
-          <span className="font-semibold text-gray-800">
-            {gebruiker?.voornaam} {gebruiker?.achternaam}
-          </span>
-          <span>{gebruiker?.email}</span>
-        </div>
-
       </div>
     </div>
   )
