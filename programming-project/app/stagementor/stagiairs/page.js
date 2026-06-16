@@ -4,23 +4,18 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Topbar from '../component/topbar';
 import { ChevronRight } from 'lucide-react';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function StagiairsPage() {
   const [stagiairs, setStagiairs] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token')
-    if (token) {
-      fetch('/api/stagementor/stagiairs', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => setStagiairs(data));
-    }
+    fetchMetAuth('/api/stagementor/stagiairs')
+      .then(res => res?.json())
+      .then(data => {
+        if (data) setStagiairs(data);
+      });
   }, []);
 
   const getInitials = (voornaam, achternaam) => {
@@ -50,7 +45,6 @@ export default function StagiairsPage() {
               onClick={() => router.push(`/stagementor/stagiairs/${s.stage_id}`)}
               className="bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer"
             >
-              {/* HEADER */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-[#dbeafe] grid place-items-center text-xs font-bold text-[#1d4ed8] flex-shrink-0">
@@ -68,7 +62,6 @@ export default function StagiairsPage() {
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </div>
 
-              {/* DETAILS */}
               <div className="grid grid-cols-5 gap-4 px-5 py-4">
                 <div>
                   <p className="text-xs text-gray-400 mb-1">Opleiding</p>
