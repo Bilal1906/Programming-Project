@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Topbar from '../component/topbar';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function LogboekenPage() {
   const router = useRouter();
@@ -10,25 +11,15 @@ export default function LogboekenPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    if (token) {
-      fetch('/api/stagementor/logboeken', {
-        headers: { Authorization: `Bearer ${token}` }
+    fetchMetAuth('/api/stagementor/logboeken')
+      .then(res => res?.json())
+      .then(data => {
+        if (data) setLogboeken(data);
+        setLoading(false);
       })
-        .then(res => res.json())
-        .then(data => {
-          setLogboeken(data);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
-    }
+      .catch(() => setLoading(false));
   }, []);
 
-  // Groepeer logboeken per student
   const perStudent = logboeken.reduce((acc, l) => {
     const naam = `${l.student_voornaam} ${l.student_achternaam}`;
     if (!acc[naam]) acc[naam] = [];
