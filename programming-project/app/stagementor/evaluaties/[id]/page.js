@@ -194,3 +194,40 @@ export default function EvaluatieDetailPage() {
                 </div>
               ))}
             </div>
+
+            {fout && (
+              <div className="bg-red-50 text-red-600 border border-red-200 rounded-lg p-3 text-sm">
+                {fout}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="bg-white border border-gray-200 rounded-lg p-10 text-center">
+            <h2 className="text-lg font-semibold text-gray-800">Finale evaluatie is nog niet beschikbaar</h2>
+            <p className="mt-4 text-gray-600">Openingsdatum:</p>
+            <p className="font-semibold text-[#1e3a5f] mt-1">15/06/2026</p>
+            <p className="text-sm text-gray-500 mt-4">Je kan de finale evaluatie invullen vanaf deze datum.</p>
+          </div>
+        )}
+      </div>
+
+      {tab === 'tussentijds' && (
+        <div className="flex justify-end gap-3 mt-8 pt-4 pr-6 pb-6 border-t border-gray-200">
+          <button
+            onClick={handleAnnuleren}
+            className="px-5 py-2.5 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50"
+          >
+            Annuleren
+          </button>
+          <button
+            onClick={handleOpslaan}
+            disabled={bezig}
+            className="px-5 py-2.5 bg-[#1e3a5f] text-white rounded-md text-sm hover:opacity-90 disabled:opacity-50"
+          >
+            {bezig ? 'Bezig...' : 'Evaluatie opslaan'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
