@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Topbar from '../component/topbar';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function EvaluatiesPage() {
   const router = useRouter();
@@ -10,25 +11,15 @@ export default function EvaluatiesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    if (token) {
-      fetch('/api/stagementor/evaluaties', {
-        headers: { Authorization: `Bearer ${token}` }
+    fetchMetAuth('/api/stagementor/evaluaties')
+      .then(res => res?.json())
+      .then(data => {
+        if (data) setEvaluaties(data);
+        setLoading(false);
       })
-        .then(res => res.json())
-        .then(data => {
-          setEvaluaties(data);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
-    }
+      .catch(() => setLoading(false));
   }, []);
 
-  // Groepeer evaluaties per student
   const perStudent = evaluaties.reduce((acc, e) => {
     const naam = `${e.student_voornaam} ${e.student_achternaam}`;
     if (!acc[naam]) acc[naam] = [];
