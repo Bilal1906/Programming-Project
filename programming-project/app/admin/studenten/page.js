@@ -1,34 +1,23 @@
 'use client';
 
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Topbar from '../component/topbar';
 
 export default function StudentenPage() {
-  const router = useRouter();
   const [studenten, setStudenten] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bewerkModus, setBewerkModus] = useState(false);
   const [geselecteerd, setGeselecteerd] = useState([]);
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    if (!token) {
-      router.push('/authentificator/login');
-      return;
-    }
-
-    fetch('/api/admin/gebruikers', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/admin/gebruikers')
+      .then(res => res?.json())
       .then(data => {
-        setStudenten(data.filter(u => u.rol === 'student'));
+        if (data) {
+          setStudenten(data.filter(u => u.rol === 'student'));
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -47,18 +36,9 @@ export default function StudentenPage() {
     }
 
     if (window.confirm(`Weet u zeker dat u ${geselecteerd.length} student(en) wilt verwijderen?`)) {
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('token='))
-        ?.split('=')[1] || localStorage.getItem('token');
-
       for (const id of geselecteerd) {
-        await fetch('/api/admin/gebruikers', {
+        await fetchMetAuth('/api/admin/gebruikers', {
           method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
           body: JSON.stringify({ id })
         });
       }
