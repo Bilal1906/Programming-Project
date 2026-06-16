@@ -1,19 +1,14 @@
 import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
-import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-
-const JWT_SECRET = process.env.JWT_SECRET || 'geheim_sleutel_verander_dit'
+import { verifyToken } from '@/app/lib/auth'
 
 export async function GET(request) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
-    }
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
 
-    const token = authHeader.split(' ')[1]
-    const payload = jwt.verify(token, JWT_SECRET)
+    const payload = auth.payload
 
     const [rijen] = await db.query(
       'SELECT id, voornaam, achternaam, email, telefoon, rol FROM user WHERE id = ?',
@@ -34,18 +29,14 @@ export async function GET(request) {
 
 export async function PUT(request) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
-    }
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
 
-    const token = authHeader.split(' ')[1]
-    const payload = jwt.verify(token, JWT_SECRET)
+    const payload = auth.payload
 
     const body = await request.json()
     const { huidigWachtwoord, nieuwWachtwoord } = body
 
-    // Huidig wachtwoord controleren
     const [rijen] = await db.query(
       'SELECT wachtwoord_hash FROM user WHERE id = ?',
       [payload.id]
@@ -56,7 +47,6 @@ export async function PUT(request) {
       return NextResponse.json({ fout: 'Huidig wachtwoord klopt niet' }, { status: 400 })
     }
 
-    // Nieuw wachtwoord opslaan
     const nieuweHash = await bcrypt.hash(nieuwWachtwoord, 10)
     await db.query(
       'UPDATE user SET wachtwoord_hash = ? WHERE id = ?',
