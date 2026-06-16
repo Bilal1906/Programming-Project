@@ -1,5 +1,5 @@
-import Sidebar from "./component/sidebar";
-import AuthGuard from './component/authGuard';
+import Sidebar from "../../component/sidebar";
+import AuthGuard from '../../component/authGuard';
 
 export default function StudentLayout({ children }) {
   return (
