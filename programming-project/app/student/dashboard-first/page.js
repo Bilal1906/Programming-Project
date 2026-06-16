@@ -1,10 +1,48 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Topbar from '../component/topbar'
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth'
 
-export default function StudentDashboard() {
+export default function StudentDashboardFirst() {
   const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [gebruiker, setGebruiker] = useState(null)
+
+  useEffect(() => {
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1] || localStorage.getItem('token')
+
+    if (!token) {
+      router.push('/authentificator/login')
+      return
+    }
+
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    setGebruiker(payload)
+
+    fetchMetAuth('/api/student/stage')
+      .then(res => res?.json())
+      .then(data => {
+        if (data && data.length > 0 && data[0].status === 'actief') {
+          router.push('/student/dashboard')
+        } else {
+          setLoading(false)
+        }
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-100">
+        <div className="text-sm text-gray-400">Laden...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex-1 flex flex-col">
@@ -13,9 +51,7 @@ export default function StudentDashboard() {
         subtitel="2025-2026 · Toegepaste Informatica"
         rechts="Geen actieve stage"
       />
-
       <div className="flex-1 flex flex-col items-center justify-center bg-gray-100 p-8">
-
         <div className="mb-6">
           <svg width="48" height="48" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
             <rect width="120" height="120" rx="20" fill="#1a2340"/>
@@ -23,13 +59,10 @@ export default function StudentDashboard() {
             <polyline points="65,68 75,80 95,55" fill="none" stroke="#4ade80" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-
-        <h2 className="text-xl font-bold mb-3">Welkom terug, Bilal 👋</h2>
+        <h2 className="text-xl font-bold mb-3">Welkom terug, {gebruiker?.voornaam ?? 'Student'} 👋</h2>
         <p className="text-gray-500 text-sm text-center max-w-md mb-8 leading-relaxed">
           Je hebt nog geen stageaanvraag ingediend. Dien je voorstel in om het goedkeuringsproces te starten.
-          Logboeken en evaluaties worden beschikbaar na goedkeuring.
         </p>
-
         <div className="flex gap-4 mb-8">
           <button
             onClick={() => router.push('/student/stage')}
@@ -44,27 +77,6 @@ export default function StudentDashboard() {
             Stageaanvraag indienen
           </button>
         </div>
-
-        <div className="flex gap-4 mb-6">
-          {[
-            { icon: '📋', label: 'Logboeken', sub: 'Dagelijks bijhouden' },
-            { icon: '⭐', label: 'Evaluaties', sub: 'Tussentijds & finaal' },
-            { icon: '📄', label: 'Documenten', sub: 'Overeenkomsten' },
-          ].map((item) => (
-            <div key={item.label} className="bg-white rounded-xl p-5 text-center opacity-50 min-w-32 shadow-sm">
-              <div className="text-2xl mb-1">{item.icon}</div>
-              <div className="font-semibold text-sm">{item.label}</div>
-              <div className="text-gray-400 text-xs">{item.sub}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-4 text-sm text-gray-500">
-          <span className="font-semibold text-gray-800">Bilal Jaaboub</span>
-          <span>bilal@student.ehb.be</span>
-          <span>Toegepaste Informatica 3</span>
-        </div>
-
       </div>
     </div>
   )
