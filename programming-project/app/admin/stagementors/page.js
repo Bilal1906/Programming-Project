@@ -1,38 +1,27 @@
 'use client';
 
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Topbar from '../component/topbar';
 
 export default function StagementorsPage() {
-  const router = useRouter();
   const [stagementors, setStagementors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bewerkModus, setBewerkModus] = useState(false);
   const [geselecteerd, setGeselecteerd] = useState([]);
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    if (!token) {
-      router.push('/authentificator/login');
-      return;
-    }
-
-    fetch('/api/admin/gebruikers', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => {
+  fetchMetAuth('/api/admin/gebruikers')
+    .then(res => res?.json())
+    .then(data => {
+      if (data) {
         setStagementors(data.filter(u => u.rol === 'stagementor'));
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+      }
+      setLoading(false);
+    })
+    .catch(() => setLoading(false));
+}, []);
 
   const toggleSelectie = (id) => {
     setGeselecteerd(prev =>
@@ -47,18 +36,9 @@ export default function StagementorsPage() {
     }
 
     if (window.confirm(`Weet u zeker dat u ${geselecteerd.length} stagementor(en) wilt verwijderen?`)) {
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('token='))
-        ?.split('=')[1] || localStorage.getItem('token');
-
       for (const id of geselecteerd) {
-        await fetch('/api/admin/gebruikers', {
+        await fetchMetAuth('/api/admin/gebruikers', {
           method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
           body: JSON.stringify({ id })
         });
       }

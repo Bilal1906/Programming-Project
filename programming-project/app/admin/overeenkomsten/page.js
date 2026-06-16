@@ -1,34 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Topbar from '../component/topbar';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function OvereenkomstenPage() {
-  const router = useRouter();
   const [stages, setStages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bewerkModus, setBewerkModus] = useState(false);
   const [geselecteerd, setGeselecteerd] = useState([]);
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    if (!token) {
-      router.push('/authentificator/login');
-      return;
-    }
-
-    fetch('/api/admin/stages', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/admin/stages')
+      .then(res => res?.json())
       .then(data => {
-        setStages(data);
+        if (data) setStages(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));

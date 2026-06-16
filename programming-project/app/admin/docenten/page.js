@@ -1,34 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Topbar from '../component/topbar';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function DocentenPage() {
-  const router = useRouter();
   const [docenten, setDocenten] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bewerkModus, setBewerkModus] = useState(false);
   const [geselecteerd, setGeselecteerd] = useState([]);
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    if (!token) {
-      router.push('/authentificator/login');
-      return;
-    }
-
-    fetch('/api/admin/gebruikers', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/admin/gebruikers')
+      .then(res => res?.json())
       .then(data => {
-        setDocenten(data.filter(u => u.rol === 'docent'));
+        if (data) setDocenten(data.filter(u => u.rol === 'docent'));
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -47,18 +34,9 @@ export default function DocentenPage() {
     }
 
     if (window.confirm(`Weet u zeker dat u ${geselecteerd.length} docent(en) wilt verwijderen?`)) {
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('token='))
-        ?.split('=')[1] || localStorage.getItem('token');
-
       for (const id of geselecteerd) {
-        await fetch('/api/admin/gebruikers', {
+        await fetchMetAuth('/api/admin/gebruikers', {
           method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
           body: JSON.stringify({ id })
         });
       }

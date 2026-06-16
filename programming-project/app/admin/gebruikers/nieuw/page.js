@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Topbar from '../../component/topbar';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function NieuweGebruikerPage() {
   const router = useRouter();
@@ -35,17 +36,8 @@ export default function NieuweGebruikerPage() {
 
     setBezig(true);
 
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    const response = await fetch('/api/admin/gebruikers', {
+    const response = await fetchMetAuth('/api/admin/gebruikers', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
       body: JSON.stringify({
         voornaam: form.voornaam,
         achternaam: form.achternaam,
@@ -55,6 +47,8 @@ export default function NieuweGebruikerPage() {
         wachtwoord: form.wachtwoord,
       })
     });
+
+    if (!response) return;
 
     const data = await response.json();
 
