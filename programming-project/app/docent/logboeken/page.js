@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import DocentTopbar from '../component/topbar'
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth'
 
 export default function DocentLogboeken() {
   const router = useRouter()
@@ -10,48 +11,25 @@ export default function DocentLogboeken() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token')
-
-    if (!token) {
-      router.push('/authentificator/login')
-      return
-    }
-
-    fetch('/api/stagementor/logboeken', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/stagementor/logboeken')
+      .then(res => res?.json())
       .then(data => {
-        setLogboeken(data)
+        setLogboeken(data ?? [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
   }, [])
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-gray-100">
-        <div className="text-sm text-gray-400">Laden...</div>
-      </div>
-    )
-  }
+  if (loading) return <div className="flex-1 flex items-center justify-center bg-gray-100"><div className="text-sm text-gray-400">Laden...</div></div>
 
   return (
     <div className="flex-1 flex flex-col">
-      <DocentTopbar
-        titel="Logboeken"
-        subtitel="2025-2026 · Erasmushogeschool Brussel"
-      />
+      <DocentTopbar titel="Logboeken" subtitel="2025-2026 · Erasmushogeschool Brussel" />
       <div className="flex-1 bg-gray-100 p-6 space-y-4">
-
         <div className="bg-white rounded-xl p-5">
           <h2 className="text-xl font-bold text-gray-900 mb-1">Logboeken</h2>
           <p className="text-sm text-gray-400">Overzicht van alle logboeken</p>
         </div>
-
         <div className="bg-white rounded-xl p-5">
           {logboeken.length === 0 ? (
             <p className="text-sm text-gray-400">Geen logboeken gevonden.</p>
@@ -72,34 +50,20 @@ export default function DocentLogboeken() {
                   <tr key={l.id} className="border-b border-gray-50">
                     <td className="text-sm text-gray-800 py-3">{l.student_voornaam} {l.student_achternaam}</td>
                     <td className="text-sm text-gray-600 py-3">Week {l.week_nummer}</td>
-                    <td className="text-sm text-gray-600 py-3">
-                      {new Date(l.datum_van).toLocaleDateString('nl-BE')} - {new Date(l.datum_tot).toLocaleDateString('nl-BE')}
-                    </td>
+                    <td className="text-sm text-gray-600 py-3">{new Date(l.datum_van).toLocaleDateString('nl-BE')} - {new Date(l.datum_tot).toLocaleDateString('nl-BE')}</td>
                     <td className="text-sm text-gray-600 py-3">{l.totaal_uren}u</td>
-                    <td className="py-3">
-                      <span className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-                        {l.status}
-                      </span>
-                    </td>
-                    <td className="py-3">
-                      <button className="px-3 py-1.5 bg-[#1e3a5f] text-white text-xs rounded-lg cursor-pointer">
-                        Bekijken
-                      </button>
-                    </td>
+                    <td className="py-3"><span className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">{l.status}</span></td>
+                    <td className="py-3"><button className="px-3 py-1.5 bg-[#1e3a5f] text-white text-xs rounded-lg cursor-pointer">Bekijken</button></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
         </div>
-
         <div className="bg-white rounded-xl p-5">
           <h2 className="text-sm font-semibold text-gray-800 mb-2">Opmerking</h2>
-          <p className="text-sm text-gray-500">
-            Docenten bekijken logboeken enkel ter opvolging. Logboeken worden niet goedgekeurd door de docent. De student registreert dagelijks taken en competenties. De stagementor controleert wekelijks.
-          </p>
+          <p className="text-sm text-gray-500">Docenten bekijken logboeken enkel ter opvolging. De stagementor controleert wekelijks.</p>
         </div>
-
       </div>
     </div>
   )
