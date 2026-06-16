@@ -15,7 +15,17 @@ export default function DocumentenPage() {
     fetchMetAuth('/api/stagementor/stagiairs')
       .then(res => res?.json())
       .then(data => {
-        if (data) setStagiairs(data);
+        if (data) {
+          setStagiairs(data);
+          // Initialiseer ondertekend status vanuit database
+          const statusMap = {};
+          data.forEach(s => {
+            if (s.document_status === 'ondertekend') {
+            statusMap[s.stage_id] = true;
+            }
+          });
+          setOndertekend(statusMap);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
