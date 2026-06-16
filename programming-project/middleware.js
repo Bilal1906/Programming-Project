@@ -37,6 +37,16 @@ export async function middleware(request) {
     }
     return NextResponse.next()
   } catch {
+  if (pathname.startsWith('/student') && rol !== 'student') {
+    return NextResponse.redirect(new URL('/authentificator/login', request.url))
+  }
+  if (pathname.startsWith('/docent') && rol !== 'docent') {
+    return NextResponse.redirect(new URL('/authentificator/login', request.url))
+  }
+  if (pathname.startsWith('/stagementor') && rol !== 'stagementor') {
+    return NextResponse.redirect(new URL('/authentificator/login', request.url))
+  }
+  if (pathname.startsWith('/admin') && rol !== 'admin') {
     return NextResponse.redirect(new URL('/authentificator/login', request.url))
   }
 }
