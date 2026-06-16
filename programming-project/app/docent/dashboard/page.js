@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import DocentTopbar from '../component/topbar'
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth'
 
 export default function DocentDashboard() {
   const router = useRouter()
@@ -24,66 +25,37 @@ export default function DocentDashboard() {
     const payload = JSON.parse(atob(token.split('.')[1]))
     setGebruiker(payload)
 
-    fetch('/api/docent/studenten', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/docent/studenten')
+      .then(res => res?.json())
       .then(data => {
-        setStudenten(data)
+        setStudenten(data ?? [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
   }, [])
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-gray-100">
-        <div className="text-sm text-gray-400">Laden...</div>
-      </div>
-    )
-  }
+  if (loading) return <div className="flex-1 flex items-center justify-center bg-gray-100"><div className="text-sm text-gray-400">Laden...</div></div>
 
   return (
     <div className="flex-1 flex flex-col">
-      <DocentTopbar
-        titel="Dashboard"
-        subtitel="2025-2026 · Erasmushogeschool Brussel"
-      />
+      <DocentTopbar titel="Dashboard" subtitel="2025-2026 · Erasmushogeschool Brussel" />
       <div className="flex-1 bg-gray-100 p-6 space-y-4">
 
-        {/* Welkom */}
         <div className="bg-white rounded-xl p-5">
-          <h2 className="text-lg font-bold text-gray-900">
-            Welkom terug, {gebruiker?.voornaam ?? 'Docent'} 👋
-          </h2>
+          <h2 className="text-lg font-bold text-gray-900">Welkom terug, {gebruiker?.voornaam ?? 'Docent'} 👋</h2>
           <p className="text-sm text-gray-400">Je begeleidt momenteel {studenten.length} studenten.</p>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl p-5">
-            <div className="text-3xl font-bold text-gray-900">{studenten.length}</div>
-            <div className="text-xs text-gray-400 mt-1">Actieve Studenten</div>
-          </div>
-          <div className="bg-white rounded-xl p-5">
-            <div className="text-3xl font-bold text-gray-900">0</div>
-            <div className="text-xs text-gray-400 mt-1">Nieuwe Logboeken</div>
-          </div>
-          <div className="bg-white rounded-xl p-5">
-            <div className="text-3xl font-bold text-gray-900">0</div>
-            <div className="text-xs text-gray-400 mt-1">Open Evaluaties</div>
-          </div>
+          <div className="bg-white rounded-xl p-5"><div className="text-3xl font-bold text-gray-900">{studenten.length}</div><div className="text-xs text-gray-400 mt-1">Actieve Studenten</div></div>
+          <div className="bg-white rounded-xl p-5"><div className="text-3xl font-bold text-gray-900">0</div><div className="text-xs text-gray-400 mt-1">Nieuwe Logboeken</div></div>
+          <div className="bg-white rounded-xl p-5"><div className="text-3xl font-bold text-gray-900">0</div><div className="text-xs text-gray-400 mt-1">Open Evaluaties</div></div>
         </div>
 
-        {/* Studenten tabel */}
         <div className="bg-white rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-gray-800">Studenten</h2>
-            <input
-              type="text"
-              placeholder="Zoek student..."
-              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400"
-            />
+            <input type="text" placeholder="Zoek student..." className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400" />
           </div>
           {studenten.length === 0 ? (
             <p className="text-sm text-gray-400">Geen studenten gevonden.</p>
@@ -104,26 +76,14 @@ export default function DocentDashboard() {
                     <td className="text-sm text-gray-800 py-3">{s.voornaam} {s.achternaam}</td>
                     <td className="text-sm text-gray-600 py-3">{s.bedrijf}</td>
                     <td className="text-sm text-gray-600 py-3">{s.mentor_voornaam} {s.mentor_achternaam}</td>
-                    <td className="py-3">
-                      <span className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-                        {s.status}
-                      </span>
-                    </td>
-                    <td className="py-3">
-                      <button
-                        onClick={() => router.push('/docent/studenten')}
-                        className="px-3 py-1.5 bg-[#1e3a5f] text-white text-xs rounded-lg cursor-pointer"
-                      >
-                        Bekijken
-                      </button>
-                    </td>
+                    <td className="py-3"><span className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">{s.status}</span></td>
+                    <td className="py-3"><button onClick={() => router.push('/docent/studenten')} className="px-3 py-1.5 bg-[#1e3a5f] text-white text-xs rounded-lg cursor-pointer">Bekijken</button></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
         </div>
-
       </div>
     </div>
   )
