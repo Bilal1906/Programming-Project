@@ -26,7 +26,8 @@ export async function GET(request) {
         st.opleiding,
         b.naam as bedrijf,
         du.voornaam as docent_voornaam,
-        du.achternaam as docent_achternaam
+        du.achternaam as docent_achternaam,
+        d_doc.status as document_status
       FROM stage s
       JOIN student st ON s.student_id = st.id
       JOIN user u ON st.user_id = u.id
@@ -34,6 +35,7 @@ export async function GET(request) {
       JOIN bedrijf b ON sm.bedrijf_id = b.id
       JOIN docent d ON s.docent_id = d.id
       JOIN user du ON d.user_id = du.id
+      LEFT JOIN document d_doc ON d_doc.stage_id = s.id AND d_doc.type = 'stageovereenkomst'
       WHERE sm.user_id = ?
     `, [payload.id])
 
