@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Topbar from '../component/topbar'
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth'
 
 export default function Profiel() {
   const router = useRouter()
@@ -15,20 +16,8 @@ export default function Profiel() {
   const [fout, setFout] = useState('')
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token')
-
-    if (!token) {
-      router.push('/authentificator/login')
-      return
-    }
-
-    fetch('/api/user/profiel', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/user/profiel')
+      .then(res => res?.json())
       .then(data => {
         setGebruiker(data)
         setLoading(false)
@@ -46,24 +35,15 @@ export default function Profiel() {
       return
     }
 
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token')
-
-    const response = await fetch('/api/user/profiel', {
+    const response = await fetchMetAuth('/api/user/profiel', {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
       body: JSON.stringify({ huidigWachtwoord, nieuwWachtwoord })
     })
 
-    const data = await response.json()
+    const data = await response?.json()
 
-    if (!response.ok) {
-      setFout(data.fout)
+    if (!response?.ok) {
+      setFout(data?.fout)
     } else {
       setBericht('Wachtwoord succesvol gewijzigd!')
       setHuidigWachtwoord('')
@@ -80,24 +60,13 @@ export default function Profiel() {
 
   const inputStyle = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-gray-100">
-        <div className="text-sm text-gray-400">Laden...</div>
-      </div>
-    )
-  }
+  if (loading) return <div className="flex-1 flex items-center justify-center bg-gray-100"><div className="text-sm text-gray-400">Laden...</div></div>
 
   return (
     <div className="flex-1 flex flex-col">
-      <Topbar
-        titel="Profiel"
-        subtitel="2025-2026 · EhB Toegepaste Informatica"
-      />
+      <Topbar titel="Profiel" subtitel="2025-2026 · EhB Toegepaste Informatica" />
       <div className="flex-1 bg-gray-100 p-6">
         <div className="max-w-2xl space-y-4">
-
-          {/* Avatar + naam */}
           <div className="bg-white rounded-xl p-5 flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
               {gebruiker?.voornaam?.[0]}{gebruiker?.achternaam?.[0]}
@@ -109,7 +78,6 @@ export default function Profiel() {
             </div>
           </div>
 
-          {/* Persoonlijke gegevens */}
           <div className="bg-white rounded-xl p-5">
             <h2 className="text-sm font-semibold text-gray-800 mb-4">Persoonlijke gegevens</h2>
             <div className="grid grid-cols-2 gap-4">
@@ -128,40 +96,21 @@ export default function Profiel() {
             </div>
           </div>
 
-          {/* Wachtwoord wijzigen */}
           <div className="bg-white rounded-xl p-5">
             <h2 className="text-sm font-semibold text-gray-800 mb-4">Wachtwoord wijzigen</h2>
             <form onSubmit={handleWachtwoordOpslaan} className="space-y-3">
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Huidig wachtwoord</label>
-                <input type="password" placeholder="Uw huidig wachtwoord" value={huidigWachtwoord} onChange={(e) => setHuidigWachtwoord(e.target.value)} className={inputStyle} />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Nieuw wachtwoord</label>
-                <input type="password" placeholder="Kies een nieuw wachtwoord" value={nieuwWachtwoord} onChange={(e) => setNieuwWachtwoord(e.target.value)} className={inputStyle} />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Bevestig nieuw wachtwoord</label>
-                <input type="password" placeholder="Herhaal uw nieuw wachtwoord" value={bevestigWachtwoord} onChange={(e) => setBevestigWachtwoord(e.target.value)} className={inputStyle} />
-              </div>
-
+              <div><label className="block text-xs text-gray-400 mb-1">Huidig wachtwoord</label><input type="password" placeholder="Uw huidig wachtwoord" value={huidigWachtwoord} onChange={(e) => setHuidigWachtwoord(e.target.value)} className={inputStyle} /></div>
+              <div><label className="block text-xs text-gray-400 mb-1">Nieuw wachtwoord</label><input type="password" placeholder="Kies een nieuw wachtwoord" value={nieuwWachtwoord} onChange={(e) => setNieuwWachtwoord(e.target.value)} className={inputStyle} /></div>
+              <div><label className="block text-xs text-gray-400 mb-1">Bevestig nieuw wachtwoord</label><input type="password" placeholder="Herhaal uw nieuw wachtwoord" value={bevestigWachtwoord} onChange={(e) => setBevestigWachtwoord(e.target.value)} className={inputStyle} /></div>
               {fout && <div className="text-red-500 text-xs">{fout}</div>}
               {bericht && <div className="text-green-500 text-xs">{bericht}</div>}
-
-              <button type="submit" className="px-5 py-2 bg-[#1e3a5f] text-white text-sm rounded-lg hover:bg-[#162d4a] cursor-pointer font-medium">
-                Wachtwoord opslaan
-              </button>
+              <button type="submit" className="px-5 py-2 bg-[#1e3a5f] text-white text-sm rounded-lg hover:bg-[#162d4a] cursor-pointer font-medium">Wachtwoord opslaan</button>
             </form>
           </div>
 
-          {/* Uitloggen */}
-          <button
-            onClick={handleUitloggen}
-            className="px-4 py-2 bg-white border border-gray-200 text-red-500 text-sm rounded-lg hover:bg-red-50 cursor-pointer font-medium flex items-center gap-2"
-          >
+          <button onClick={handleUitloggen} className="px-4 py-2 bg-white border border-gray-200 text-red-500 text-sm rounded-lg hover:bg-red-50 cursor-pointer font-medium flex items-center gap-2">
             ⏻ Uitloggen
           </button>
-
         </div>
       </div>
     </div>
