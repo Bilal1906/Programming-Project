@@ -1,22 +1,16 @@
 import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
-import jwt from 'jsonwebtoken'
-
-const JWT_SECRET = process.env.JWT_SECRET || 'geheim_sleutel_verander_dit'
+import { verifyToken, checkRol } from '@/app/lib/auth'
 
 export async function GET(request) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
-    }
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
 
-    const token = authHeader.split(' ')[1]
-    const payload = jwt.verify(token, JWT_SECRET)
+    const rolFout = checkRol(auth.payload, ['docent'])
+    if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
-    if (payload.rol !== 'docent') {
-      return NextResponse.json({ fout: 'Geen toegang' }, { status: 403 })
-    }
+    const payload = auth.payload
 
     const [rijen] = await db.query(`
       SELECT 
