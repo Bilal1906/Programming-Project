@@ -4,28 +4,20 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Topbar from '../component/topbar';
 import { FileText, Download } from 'lucide-react';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function DocumentenPage() {
   const [stagiairs, setStagiairs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    if (token) {
-      fetch('/api/stagementor/stagiairs', {
-        headers: { Authorization: `Bearer ${token}` }
+    fetchMetAuth('/api/stagementor/stagiairs')
+      .then(res => res?.json())
+      .then(data => {
+        if (data) setStagiairs(data);
+        setLoading(false);
       })
-        .then(res => res.json())
-        .then(data => {
-          setStagiairs(data);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
-    }
+      .catch(() => setLoading(false));
   }, []);
 
   if (loading) {
@@ -51,7 +43,6 @@ export default function DocumentenPage() {
               <p className="text-xs text-gray-400 mb-2">{s.voornaam} {s.achternaam}</p>
 
               <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                {/* Stageovereenkomst */}
                 <Link
                   href={`/stagementor/documenten/${s.stage_id}`}
                   className="block hover:bg-gray-50 transition-colors"
@@ -79,7 +70,6 @@ export default function DocumentenPage() {
                   </div>
                 </Link>
 
-                {/* Eindverslag */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-[#fef3c7] grid place-items-center flex-shrink-0">
