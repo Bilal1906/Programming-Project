@@ -1,87 +1,97 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Topbar from '../component/topbar';
 
 export default function EvaluatiesPage() {
   const router = useRouter();
+  const [evaluaties, setEvaluaties] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1] || localStorage.getItem('token');
+
+    if (token) {
+      fetch('/api/stagementor/evaluaties', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(data => {
+          setEvaluaties(data);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
+  }, []);
+
+  // Groepeer evaluaties per student
+  const perStudent = evaluaties.reduce((acc, e) => {
+    const naam = `${e.student_voornaam} ${e.student_achternaam}`;
+    if (!acc[naam]) acc[naam] = [];
+    acc[naam].push(e);
+    return acc;
+  }, {});
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-100">
+        <div className="text-sm text-gray-400">Laden...</div>
+      </div>
+    );
+  }
 
   return (
     <div>
       <Topbar title="Evaluaties" subtitle="2025–2026" />
 
       <div className="p-6 flex flex-col gap-6">
-
-        {/* BILAL */}
-        <div>
-          <p className="text-xs text-gray-400 mb-2">Bilal Jaaboub</p>
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-
-            {/* Tussentijdse evaluatie */}
-            <div
-              onClick={() => router.push('/stagementor/evaluaties/1')}
-              className="flex items-center justify-between px-5 py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50"
-            >
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Tussentijdse evaluatie</p>
-                <p className="text-xs text-gray-400 mt-0.5">Verwacht rond week 7</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium text-[#1d4ed8]">Nog in te vullen</span>
-                <span className="text-black text-[10px]">▸</span>
-              </div>
-            </div>
-
-            {/* Finale evaluatie */}
-            <div className="flex items-center justify-between px-5 py-4">
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Finale evaluatie</p>
-                <p className="text-xs text-gray-400 mt-0.5">Beschikbaar na tussentijdse evaluatie</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium text-[#854F0B]">Nog niet beschikbaar</span>
-                <span className="text-black text-[10px]">▸</span>
-              </div>
-            </div>
-
+        {Object.keys(perStudent).length === 0 ? (
+          <div className="bg-white border border-gray-200 rounded-lg px-5 py-10 text-center">
+            <p className="text-sm text-gray-400">Geen evaluaties gevonden</p>
           </div>
-        </div>
-
-        {/* NASSIM */}
-        <div>
-          <p className="text-xs text-gray-400 mb-2">Nassim El Ghzaoui</p>
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-
-            {/* Tussentijdse evaluatie */}
-            <div
-              onClick={() => router.push('/stagementor/evaluaties/2')}
-              className="flex items-center justify-between px-5 py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50"
-            >
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Tussentijdse evaluatie</p>
-                <p className="text-xs text-gray-400 mt-0.5">Verwacht rond week 7</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium text-[#1d4ed8]">Nog in te vullen</span>
-                <span className="text-black text-[10px]">▸</span>
+        ) : (
+          Object.entries(perStudent).map(([naam, evals]) => (
+            <div key={naam}>
+              <p className="text-xs text-gray-400 mb-2">{naam}</p>
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                {evals.map((e, i) => (
+                  <div
+                    key={e.id}
+                    onClick={() => router.push(`/stagementor/evaluaties/${e.id}`)}
+                    className={`flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50 ${
+                      i < evals.length - 1 ? 'border-b border-gray-100' : ''
+                    }`}
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {e.type === 'tussentijds' ? 'Tussentijdse evaluatie' : 'Finale evaluatie'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {e.datum ? new Date(e.datum).toLocaleDateString('nl-BE') : `Verwacht rond week ${e.week_nummer}`}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs font-medium ${
+                        e.status === 'voltooid' ? 'text-[#3B6D11]' :
+                        e.status === 'open' ? 'text-[#1d4ed8]' :
+                        'text-[#854F0B]'
+                      }`}>
+                        {e.status === 'voltooid' ? 'Voltooid' :
+                         e.status === 'open' ? 'Nog in te vullen' :
+                         e.status}
+                      </span>
+                      <span className="text-black text-[10px]">▸</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-
-            {/* Finale evaluatie */}
-            <div className="flex items-center justify-between px-5 py-4">
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Finale evaluatie</p>
-                <p className="text-xs text-gray-400 mt-0.5">Beschikbaar na tussentijdse evaluatie</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-medium text-[#854F0B]">Nog niet beschikbaar</span>
-                <span className="text-black text-[10px]">▸</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
+          ))
+        )}
       </div>
     </div>
   );
