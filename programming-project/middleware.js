@@ -1,41 +1,46 @@
 import { NextResponse } from 'next/server'
+import { jwtVerify } from 'jose'
 
-export function middleware(request) {
-  const token = request.cookies.get('token')?.value
-  const rol = request.cookies.get('rol')?.value
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET)
+
+const publiekeRoutes = [
+  '/authentificator/login',
+  '/authentificator/wachtwoord-vergeten',
+  '/authentificator/first-time',
+]
+
+const ROUTE_ROLES = {
+  '/student': 'student',
+  '/docent': 'docent',
+  '/stagementor': 'stagementor',
+  '/admin': 'admin',
+}
+
+export async function middleware(request) {
   const { pathname } = request.nextUrl
-
-  const publiekeRoutes = [
-    '/authentificator/login',
-    '/authentificator/wachtwoord-vergeten',
-    '/authentificator/first-time',
-  ]
 
   if (publiekeRoutes.some(route => pathname.startsWith(route))) {
     return NextResponse.next()
   }
 
+  const token = request.cookies.get('token')?.value
   if (!token) {
     return NextResponse.redirect(new URL('/authentificator/login', request.url))
   }
 
-  // Rol beveiliging
-  if (pathname.startsWith('/student') && rol !== 'student') {
+  try {
+    const { payload } = await jwtVerify(token, SECRET)
+    const prefix = Object.keys(ROUTE_ROLES).find(p => pathname.startsWith(p))
+    // on lit le rôle du token SIGNÉ, jamais du cookie
+    if (prefix && payload.rol !== ROUTE_ROLES[prefix]) {
+      return NextResponse.redirect(new URL('/authentificator/login', request.url))
+    }
+    return NextResponse.next()
+  } catch {
     return NextResponse.redirect(new URL('/authentificator/login', request.url))
   }
-  if (pathname.startsWith('/docent') && rol !== 'docent') {
-    return NextResponse.redirect(new URL('/authentificator/login', request.url))
-  }
-  if (pathname.startsWith('/stagementor') && rol !== 'stagementor') {
-    return NextResponse.redirect(new URL('/authentificator/login', request.url))
-  }
-  if (pathname.startsWith('/admin') && rol !== 'admin') {
-    return NextResponse.redirect(new URL('/authentificator/login', request.url))
-  }
-
-  return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/student/:path*', '/docent/:path*', '/stagementor/:path*', '/admin/:path*']
-}
+  matcher: ['/student/:path*', '/docent/:path*', '/stagementor/:path*', '/admin/:path*'],
+} 

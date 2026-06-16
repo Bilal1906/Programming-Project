@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import db from '@/app/lib/db'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'geheim_sleutel_verander_dit'
+const JWT_SECRET = process.env.JWT_SECRET
 
 export async function POST(request) {
   try {

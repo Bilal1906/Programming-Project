@@ -1,51 +1,81 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Topbar from '../component/topbar';
 
-const initialeStudenten = [
-  { naam: 'Bilal Jaaboub', email: 'bilal.jaaboub@student.ehb.be', telefoon: '+32 470 11 22 33', docent: 'Joachim Quartier', stage: 'Ingediend', stageKleur: '#92400E' },
-  { naam: 'Nassim El Ghzaoui', email: 'nassim.elghzaoui@student.ehb.be', telefoon: '+32 471 22 33 44', docent: 'Joachim Quartier', stage: 'Actief', stageKleur: '#1E40AF' },
-  { naam: 'Yagiz Biçer', email: 'yagiz.bicer@student.ehb.be', telefoon: '+32 472 33 44 55', docent: 'Tom Aertssens', stage: 'Goedgekeurd', stageKleur: '#065F46' },
-  { naam: 'Syrine Benamar', email: 'syrine.benamar@student.ehb.be', telefoon: '+32 473 44 55 66', docent: 'Tom Aertssens', stage: 'Aanpassingen', stageKleur: '#9A3412' },
-  { naam: 'Soufiane Jay-Yufi', email: 'soufiane.jayyufi@student.ehb.be', telefoon: '+32 474 55 66 77', docent: 'Joachim Quartier', stage: 'Geen stage', stageKleur: '#64748B' },
-];
-
 export default function StudentenPage() {
+  const router = useRouter();
+  const [studenten, setStudenten] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [bewerkModus, setBewerkModus] = useState(false);
   const [geselecteerd, setGeselecteerd] = useState([]);
 
-  const toggleSelectie = (naam) => {
-    setGeselecteerd((prev) =>
-      prev.includes(naam)
-        ? prev.filter((n) => n !== naam)
-        : [...prev, naam]
+  useEffect(() => {
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1] || localStorage.getItem('token');
+
+    if (!token) {
+      router.push('/authentificator/login');
+      return;
+    }
+
+    fetch('/api/admin/gebruikers', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setStudenten(data.filter(u => u.rol === 'student'));
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const toggleSelectie = (id) => {
+    setGeselecteerd(prev =>
+      prev.includes(id) ? prev.filter(n => n !== id) : [...prev, id]
     );
   };
 
-  const handleVerwijder = () => {
+  const handleVerwijder = async () => {
     if (geselecteerd.length === 0) {
       alert('Selecteer minstens één student.');
       return;
     }
 
-    if (
-      window.confirm(
-        `Weet u zeker dat u ${geselecteerd.length} student(en) wilt verwijderen?`
-      )
-    ) {
-      alert('Verwijderd!');
+    if (window.confirm(`Weet u zeker dat u ${geselecteerd.length} student(en) wilt verwijderen?`)) {
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1] || localStorage.getItem('token');
+
+      for (const id of geselecteerd) {
+        await fetch('/api/admin/gebruikers', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ id })
+        });
+      }
+
+      setStudenten(prev => prev.filter(s => !geselecteerd.includes(s.id)));
       setGeselecteerd([]);
       setBewerkModus(false);
     }
   };
 
-  const handleVoltooien = () => {
-    alert('Wijzigingen opgeslagen!');
-    setGeselecteerd([]);
-    setBewerkModus(false);
-  };
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className="text-sm text-gray-400">Laden...</div>
+      </div>
+    );
+  }
 
   return (
     <main className="flex-1 flex flex-col">
@@ -54,14 +84,9 @@ export default function StudentenPage() {
       <div className="flex-1 p-6 bg-gray-50">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">
-              Studentenoverzicht
-            </h2>
-            <p className="text-sm text-gray-400">
-              Voeg toe, bewerk en verwijder één of meerdere student(en)
-            </p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Studentenoverzicht</h2>
+            <p className="text-sm text-gray-400">Voeg toe, bewerk en verwijder één of meerdere student(en)</p>
           </div>
-
           <div className="flex gap-2">
             {bewerkModus ? (
               <>
@@ -71,9 +96,8 @@ export default function StudentenPage() {
                 >
                   Verwijderen
                 </button>
-
                 <button
-                  onClick={handleVoltooien}
+                  onClick={() => { setGeselecteerd([]); setBewerkModus(false); }}
                   className="bg-[#1A2E4A] text-white text-sm px-5 py-2 rounded-lg font-medium hover:bg-[#152438]"
                 >
                   Voltooien
@@ -95,92 +119,37 @@ export default function StudentenPage() {
             <thead>
               <tr className="border-b border-gray-100">
                 {bewerkModus && <th className="px-5 py-3 w-10"></th>}
-
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
-                  Student
-                </th>
-
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
-                  E-mail
-                </th>
-
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
-                  Telefoon
-                </th>
-
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
-                  Docent
-                </th>
-
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
-                  Stage
-                </th>
-
+                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Student</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">E-mail</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Telefoon</th>
                 <th className="text-right px-5 py-3 text-xs font-medium text-gray-400"></th>
               </tr>
             </thead>
-
             <tbody>
-              {initialeStudenten.map((s) => (
-                <tr
-                  key={s.naam}
-                  className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
-                >
+              {studenten.map((s) => (
+                <tr key={s.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   {bewerkModus && (
                     <td className="px-5 py-4">
                       <input
                         type="checkbox"
-                        checked={geselecteerd.includes(s.naam)}
-                        onChange={() => toggleSelectie(s.naam)}
+                        checked={geselecteerd.includes(s.id)}
+                        onChange={() => toggleSelectie(s.id)}
                         className="w-4 h-4 accent-[#1A2E4A] cursor-pointer"
                       />
                     </td>
                   )}
-
-                  <td className="px-5 py-4 font-medium text-gray-900">
-                    {s.naam}
-                  </td>
-
-                  <td className="px-5 py-4 text-gray-600">
-                    {s.email}
-                  </td>
-
-                  <td className="px-5 py-4 text-gray-600">
-                    {s.telefoon}
-                  </td>
-
-                  <td className="px-5 py-4 text-gray-600">
-                    {s.docent}
-                  </td>
-
-                  <td className="px-5 py-4">
-                    <span
-                      className="text-sm"
-                      style={{ color: s.stageKleur }}
-                    >
-                      {s.stage}
-                    </span>
-                  </td>
-
+                  <td className="px-5 py-4 font-medium text-gray-900">{s.voornaam} {s.achternaam}</td>
+                  <td className="px-5 py-4 text-gray-600">{s.email}</td>
+                  <td className="px-5 py-4 text-gray-600">{s.telefoon}</td>
                   <td className="px-5 py-4 text-right">
                     {bewerkModus && (
                       <Link
-                        href="/admin/studenten/student-bewerken"
-                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-[#1A2E4A]"
-                        title="Bewerken"
+                        href={`/admin/studenten/${s.id}`}
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-500"
                       >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
                       </Link>
                     )}
@@ -194,9 +163,8 @@ export default function StudentenPage() {
         {bewerkModus && (
           <div className="flex justify-center mt-6">
             <Link
-              href="/admin/studenten/student-nieuw"
-              className="w-12 h-12 rounded-full bg-[#1A2E4A] text-white text-2xl font-light grid place-items-center hover:bg-[#152438] shadow-md transition-colors"
-              title="Student toevoegen"
+              href="/admin/studenten/nieuw"
+              className="w-12 h-12 rounded-full bg-[#1A2E4A] text-white text-2xl font-light grid place-items-center hover:bg-[#152438] shadow-md"
             >
               +
             </Link>
