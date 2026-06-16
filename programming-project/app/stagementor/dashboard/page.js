@@ -9,7 +9,10 @@ export default function StagementorDashboard() {
   const [stagiairs, setStagiairs] = useState([]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('token='))
+      ?.split('=')[1] || localStorage.getItem('token')
     if (token) {
       const payload = JSON.parse(atob(token.split('.')[1]));
       setUser(payload);
