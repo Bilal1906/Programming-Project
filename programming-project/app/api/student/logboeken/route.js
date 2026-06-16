@@ -1,24 +1,17 @@
 import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
-import jwt from 'jsonwebtoken'
-
-const JWT_SECRET = process.env.JWT_SECRET || 'geheim_sleutel_verander_dit'
+import { verifyToken, checkRol } from '@/app/lib/auth'
 
 export async function GET(request) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
-    }
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
 
-    const token = authHeader.split(' ')[1]
-    const payload = jwt.verify(token, JWT_SECRET)
+    const rolFout = checkRol(auth.payload, ['student'])
+    if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
-    if (payload.rol !== 'student') {
-      return NextResponse.json({ fout: 'Geen toegang' }, { status: 403 })
-    }
+    const payload = auth.payload
 
-    // Stage ID ophalen
     const [stageRijen] = await db.query(`
       SELECT s.id FROM stage s
       JOIN student st ON s.student_id = st.id
@@ -32,7 +25,6 @@ export async function GET(request) {
 
     const stage_id = stageRijen[0].id
 
-    // Logboeken ophalen
     const [rijen] = await db.query(`
       SELECT 
         lw.id,
@@ -57,22 +49,15 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
-    }
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
 
-    const token = authHeader.split(' ')[1]
-    const payload = jwt.verify(token, JWT_SECRET)
-
-    if (payload.rol !== 'student') {
-      return NextResponse.json({ fout: 'Geen toegang' }, { status: 403 })
-    }
+    const rolFout = checkRol(auth.payload, ['student'])
+    if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
     const body = await request.json()
     const { stage_id, week_nummer, datum_van, datum_tot, dagen } = body
 
-    // Logboek week aanmaken
     const [weekResult] = await db.query(
       `INSERT INTO logboek_week (stage_id, week_nummer, datum_van, datum_tot, status)
        VALUES (?, ?, ?, ?, 'onvolledig')`,
@@ -80,7 +65,6 @@ export async function POST(request) {
     )
     const logboek_week_id = weekResult.insertId
 
-    // Dagen aanmaken
     for (const dag of dagen) {
       await db.query(
         `INSERT INTO logboek_dag (logboek_week_id, datum, uren, uitgevoerde_taken, reflectie, leerpunten, status)

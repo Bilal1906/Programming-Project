@@ -1,18 +1,13 @@
 import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
-import jwt from 'jsonwebtoken'
-
-const JWT_SECRET = process.env.JWT_SECRET || 'geheim_sleutel_verander_dit'
+import { verifyToken } from '@/app/lib/auth'
 
 export async function GET(request) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
-    }
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
 
-    const token = authHeader.split(' ')[1]
-    const payload = jwt.verify(token, JWT_SECRET)
+    const payload = auth.payload
 
     const [rijen] = await db.query(`
       SELECT id, type, bericht, gelezen, created_at
@@ -32,13 +27,10 @@ export async function GET(request) {
 
 export async function PUT(request) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
-    }
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
 
-    const token = authHeader.split(' ')[1]
-    const payload = jwt.verify(token, JWT_SECRET)
+    const payload = auth.payload
 
     const body = await request.json()
     const { id } = body

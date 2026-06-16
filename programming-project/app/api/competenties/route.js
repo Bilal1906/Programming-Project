@@ -1,18 +1,12 @@
 import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
-import jwt from 'jsonwebtoken'
-
-const JWT_SECRET = process.env.JWT_SECRET || 'geheim_sleutel_verander_dit'
+import { verifyToken, checkRol } from '@/app/lib/auth'
 
 export async function GET(request) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
-    }
-
-    const token = authHeader.split(' ')[1]
-    jwt.verify(token, JWT_SECRET)
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
+    // pas de checkRol : tout utilisateur connecté peut lire les compétences
 
     const [rijen] = await db.query(`
       SELECT id, naam, omschrijving, gewicht
@@ -30,17 +24,11 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
-    }
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
 
-    const token = authHeader.split(' ')[1]
-    const payload = jwt.verify(token, JWT_SECRET)
-
-    if (payload.rol !== 'admin') {
-      return NextResponse.json({ fout: 'Geen toegang' }, { status: 403 })
-    }
+    const rolFout = checkRol(auth.payload, ['admin'])
+    if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
     const body = await request.json()
     const { naam, omschrijving, gewicht } = body
