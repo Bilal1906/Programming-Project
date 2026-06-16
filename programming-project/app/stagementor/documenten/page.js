@@ -9,6 +9,7 @@ import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 export default function DocumentenPage() {
   const [stagiairs, setStagiairs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [ondertekend, setOndertekend] = useState({});
 
   useEffect(() => {
     fetchMetAuth('/api/stagementor/stagiairs')
@@ -19,6 +20,23 @@ export default function DocumentenPage() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  const handleOndertekenen = async (stage_id) => {
+    const response = await fetchMetAuth('/api/student/documenten/ondertekenen', {
+      method: 'PUT',
+      body: JSON.stringify({
+        stage_id,
+        type: 'stageovereenkomst'
+      })
+    });
+
+    if (response?.ok) {
+      setOndertekend(prev => ({ ...prev, [stage_id]: true }));
+      alert('Document succesvol ondertekend!');
+    } else {
+      alert('Er is een fout opgetreden.');
+    }
+  };
 
   if (loading) {
     return (
@@ -43,33 +61,39 @@ export default function DocumentenPage() {
               <p className="text-xs text-gray-400 mb-2">{s.voornaam} {s.achternaam}</p>
 
               <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <Link
-                  href={`/stagementor/documenten/${s.stage_id}`}
-                  className="block hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-[#1e3a5f] grid place-items-center flex-shrink-0">
-                        <FileText className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">Stageovereenkomst</p>
-                        <p className="text-xs text-gray-400 mt-0.5">Ondertekend · Opgeladen op 03/02/2025</p>
-                      </div>
+
+                {/* Stageovereenkomst */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-[#1e3a5f] grid place-items-center flex-shrink-0">
+                      <FileText className="w-4 h-4 text-white" />
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-medium text-[#3B6D11]">Goedgekeurd</span>
-                      <button
-                        onClick={(e) => e.preventDefault()}
-                        className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <Download size={16} />
-                        Downloaden
-                      </button>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">Stageovereenkomst</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {ondertekend[s.stage_id] ? 'Ondertekend' : 'Wacht op ondertekening'}
+                      </p>
                     </div>
                   </div>
-                </Link>
+                  <div className="flex items-center gap-3">
+                    {ondertekend[s.stage_id] ? (
+                      <span className="text-sm font-medium text-[#3B6D11]">✓ Ondertekend</span>
+                    ) : (
+                      <button
+                        onClick={() => handleOndertekenen(s.stage_id)}
+                        className="px-4 py-1.5 bg-[#1e3a5f] text-white text-sm rounded-lg hover:opacity-90 cursor-pointer font-medium"
+                      >
+                        Document ondertekenen
+                      </button>
+                    )}
+                    <button className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                      <Download size={16} />
+                      Downloaden
+                    </button>
+                  </div>
+                </div>
 
+                {/* Eindverslag */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-[#fef3c7] grid place-items-center flex-shrink-0">
@@ -82,6 +106,7 @@ export default function DocumentenPage() {
                   </div>
                   <span className="text-sm font-medium text-[#854F0B]">In afwachting</span>
                 </div>
+
               </div>
             </div>
           ))
