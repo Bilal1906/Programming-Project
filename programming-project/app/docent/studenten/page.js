@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import DocentTopbar from '../component/topbar'
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth'
 
 export default function DocentStudenten() {
   const router = useRouter()
@@ -11,22 +12,10 @@ export default function DocentStudenten() {
   const [zoekterm, setZoekterm] = useState('')
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token')
-
-    if (!token) {
-      router.push('/authentificator/login')
-      return
-    }
-
-    fetch('/api/docent/studenten', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/docent/studenten')
+      .then(res => res?.json())
       .then(data => {
-        setStudenten(data)
+        setStudenten(data ?? [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -36,39 +25,21 @@ export default function DocentStudenten() {
     `${s.voornaam} ${s.achternaam}`.toLowerCase().includes(zoekterm.toLowerCase())
   )
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-gray-100">
-        <div className="text-sm text-gray-400">Laden...</div>
-      </div>
-    )
-  }
+  if (loading) return <div className="flex-1 flex items-center justify-center bg-gray-100"><div className="text-sm text-gray-400">Laden...</div></div>
 
   return (
     <div className="flex-1 flex flex-col">
-      <DocentTopbar
-        titel="Studenten"
-        subtitel="2025-2026 · Erasmushogeschool Brussel"
-      />
+      <DocentTopbar titel="Studenten" subtitel="2025-2026 · Erasmushogeschool Brussel" />
       <div className="flex-1 bg-gray-100 p-6">
-
         <div className="bg-white rounded-xl p-5 mb-4">
           <h2 className="text-xl font-bold text-gray-900">{studenten.length} Studenten</h2>
           <p className="text-sm text-gray-400">Bekijk contactgegevens, stagebedrijven, mentoren en stage-informatie.</p>
         </div>
-
         <div className="bg-white rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-gray-800">Studentenlijst</h2>
-            <input
-              type="text"
-              placeholder="Zoek student..."
-              value={zoekterm}
-              onChange={e => setZoekterm(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400"
-            />
+            <input type="text" placeholder="Zoek student..." value={zoekterm} onChange={e => setZoekterm(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400" />
           </div>
-
           {gefilterdeStudenten.length === 0 ? (
             <p className="text-sm text-gray-400">Geen studenten gevonden.</p>
           ) : (
@@ -92,23 +63,14 @@ export default function DocentStudenten() {
                     <td className="text-sm text-gray-600 py-3">{s.telefoon}</td>
                     <td className="text-sm text-gray-600 py-3">{s.bedrijf}</td>
                     <td className="text-sm text-gray-600 py-3">{s.mentor_voornaam} {s.mentor_achternaam}</td>
-                    <td className="py-3">
-                      <span className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-                        {s.status}
-                      </span>
-                    </td>
-                    <td className="py-3">
-                      <button className="px-3 py-1.5 bg-[#1e3a5f] text-white text-xs rounded-lg cursor-pointer">
-                        Bekijken
-                      </button>
-                    </td>
+                    <td className="py-3"><span className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">{s.status}</span></td>
+                    <td className="py-3"><button className="px-3 py-1.5 bg-[#1e3a5f] text-white text-xs rounded-lg cursor-pointer">Bekijken</button></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
         </div>
-
       </div>
     </div>
   )
