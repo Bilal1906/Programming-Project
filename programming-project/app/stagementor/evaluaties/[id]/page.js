@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Topbar from '../../component/topbar';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 const NIVEAUS = [
   { score: 1, label: 'Onvoldoende', kleur: '#dc2626' },
@@ -37,21 +38,10 @@ export default function EvaluatieDetailPage() {
   const [commentaren, setCommentaren] = useState(COMPETENTIES.map(() => ''));
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    if (!token) {
-      router.push('/authentificator/login');
-      return;
-    }
-
-    fetch('/api/stagementor/evaluaties', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/stagementor/evaluaties')
+      .then(res => res?.json())
       .then(data => {
+        if (!data) return;
         const gevonden = data.find(e => e.id === parseInt(id));
         setEvaluatie(gevonden);
         setLoading(false);
@@ -75,17 +65,8 @@ export default function EvaluatieDetailPage() {
     setFout('');
     setBezig(true);
 
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    const response = await fetch('/api/stagementor/evaluaties', {
+    const response = await fetchMetAuth('/api/stagementor/evaluaties', {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
       body: JSON.stringify({
         evaluatie_id: parseInt(id),
         feedback: '',
@@ -96,6 +77,8 @@ export default function EvaluatieDetailPage() {
         }))
       })
     });
+
+    if (!response) return;
 
     const data = await response.json();
 
@@ -140,7 +123,6 @@ export default function EvaluatieDetailPage() {
 
       <div className="p-6 flex flex-col gap-4">
 
-        {/* TABS */}
         <div className="flex gap-6 border-b border-gray-200">
           <button
             onClick={() => setTab('tussentijds')}
@@ -162,7 +144,6 @@ export default function EvaluatieDetailPage() {
 
         {tab === 'tussentijds' ? (
           <>
-            {/* RUBRIEK */}
             <div className="flex items-center gap-5 flex-wrap">
               <span className="text-xs font-semibold text-gray-500">Rubriek:</span>
               {NIVEAUS.map((n) => (
@@ -178,7 +159,6 @@ export default function EvaluatieDetailPage() {
               ))}
             </div>
 
-            {/* COMPETENTIES */}
             <div className="flex flex-col gap-4">
               {COMPETENTIES.map((competentie, index) => (
                 <div key={index} className="border border-gray-200 rounded-md bg-white overflow-hidden">
@@ -214,40 +194,3 @@ export default function EvaluatieDetailPage() {
                 </div>
               ))}
             </div>
-
-            {fout && (
-              <div className="bg-red-50 text-red-600 border border-red-200 rounded-lg p-3 text-sm">
-                {fout}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="bg-white border border-gray-200 rounded-lg p-10 text-center">
-            <h2 className="text-lg font-semibold text-gray-800">Finale evaluatie is nog niet beschikbaar</h2>
-            <p className="mt-4 text-gray-600">Openingsdatum:</p>
-            <p className="font-semibold text-[#1e3a5f] mt-1">15/06/2026</p>
-            <p className="text-sm text-gray-500 mt-4">Je kan de finale evaluatie invullen vanaf deze datum.</p>
-          </div>
-        )}
-      </div>
-
-      {tab === 'tussentijds' && (
-        <div className="flex justify-end gap-3 mt-8 pt-4 pr-6 pb-6 border-t border-gray-200">
-          <button
-            onClick={handleAnnuleren}
-            className="px-5 py-2.5 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50"
-          >
-            Annuleren
-          </button>
-          <button
-            onClick={handleOpslaan}
-            disabled={bezig}
-            className="px-5 py-2.5 bg-[#1e3a5f] text-white rounded-md text-sm hover:opacity-90 disabled:opacity-50"
-          >
-            {bezig ? 'Bezig...' : 'Evaluatie opslaan'}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
