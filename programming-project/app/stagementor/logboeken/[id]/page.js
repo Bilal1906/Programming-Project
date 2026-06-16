@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Topbar from '../../component/topbar';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function LogboekDetailPage() {
   const router = useRouter();
@@ -12,21 +13,10 @@ export default function LogboekDetailPage() {
   const [bezig, setBezig] = useState(false);
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    if (!token) {
-      router.push('/authentificator/login');
-      return;
-    }
-
-    fetch('/api/stagementor/logboeken', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/stagementor/logboeken')
+      .then(res => res?.json())
       .then(data => {
+        if (!data) return;
         const gevonden = data.find(l => l.id === parseInt(id));
         setLogboek(gevonden);
         setLoading(false);
@@ -37,22 +27,15 @@ export default function LogboekDetailPage() {
   const handleGoedkeuren = async (nieuweStatus) => {
     setBezig(true);
 
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    const response = await fetch('/api/stagementor/logboeken', {
+    const response = await fetchMetAuth('/api/stagementor/logboeken', {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
       body: JSON.stringify({
         id: parseInt(id),
         status: nieuweStatus,
       })
     });
+
+    if (!response) return;
 
     const data = await response.json();
 
@@ -89,7 +72,6 @@ export default function LogboekDetailPage() {
 
       <div className="p-6 flex flex-col gap-4">
 
-        {/* Info kaart */}
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <div className="grid grid-cols-3 gap-4">
             <div>
@@ -121,7 +103,6 @@ export default function LogboekDetailPage() {
           </div>
         </div>
 
-        {/* Acties */}
         {logboek.status === 'ingediend' && (
           <div className="flex gap-3">
             <button
