@@ -1,19 +1,17 @@
-import jwt from 'jsonwebtoken';
 import db from '@/app/lib/db';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'geheim_sleutel_verander_dit';
+import { NextResponse } from 'next/server';
+import { verifyToken, checkRol } from '@/app/lib/auth';
 
 export async function GET(request, { params }) {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    const auth = verifyToken(request);
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status });
 
-    if (!token) {
-      return Response.json({ fout: 'Geen token' }, { status: 401 });
-    }
+    const rolFout = checkRol(auth.payload, ['stagementor']);
+    if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status });
 
-    const payload = jwt.verify(token, JWT_SECRET);
-    const stagementor_id = payload.stagementor_id;
-    const stage_id = params.id;
+    const stagementor_id = auth.payload.stagementor_id;
+    const { id: stage_id } = await params;   // ← await obligatoire en Next.js 16
 
     const [rows] = await db.query(`
       SELECT 
@@ -42,12 +40,12 @@ export async function GET(request, { params }) {
     `, [stage_id, stagementor_id]);
 
     if (rows.length === 0) {
-      return Response.json({ fout: 'Niet gevonden' }, { status: 404 });
+      return NextResponse.json({ fout: 'Niet gevonden' }, { status: 404 });
     }
 
-    return Response.json(rows[0]);
+    return NextResponse.json(rows[0]);
 
   } catch (error) {
-    return Response.json({ fout: error.message }, { status: 500 });
+    return NextResponse.json({ fout: error.message }, { status: 500 });
   }
 }
