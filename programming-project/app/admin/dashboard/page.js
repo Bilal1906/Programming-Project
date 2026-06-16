@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Topbar from '../component/topbar';
 import Link from 'next/link';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [gebruiker, setGebruiker] = useState(null);
   const [stages, setStages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,20 +16,15 @@ export default function DashboardPage() {
       .find(row => row.startsWith('token='))
       ?.split('=')[1] || localStorage.getItem('token');
 
-    if (!token) {
-      router.push('/authentificator/login');
-      return;
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setGebruiker(payload);
     }
 
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    setGebruiker(payload);
-
-    fetch('/api/admin/stages', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/admin/stages')
+      .then(res => res?.json())
       .then(data => {
-        setStages(data);
+        if (data) setStages(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -62,7 +56,6 @@ export default function DashboardPage() {
 
       <div className="flex-1 p-6 bg-gray-50">
 
-        {/* Welkom + badge */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
             Welkom terug, {gebruiker?.voornaam ?? 'Admin'} 👋
@@ -74,7 +67,6 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Stat cards */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           {stats.map((stat) => (
             <div key={stat.label} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
@@ -87,10 +79,8 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Twee kolommen */}
         <div className="grid grid-cols-2 gap-4 mb-6">
 
-          {/* Openstaande aanvragen */}
           <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-gray-900">Openstaande aanvragen</h3>
@@ -121,7 +111,6 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Stage handmatig registreren */}
           <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm flex flex-col items-center justify-center text-center">
             <div className="w-12 h-12 border border-gray-200 rounded-xl flex items-center justify-center mb-4">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -144,7 +133,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Info bar */}
         <div className="grid grid-cols-3 rounded-xl overflow-hidden border border-gray-100 shadow-sm">
           <div className="bg-white px-5 py-4 border-r border-gray-100">
             <p className="text-xs text-gray-400 mb-1">Admin</p>
