@@ -1,23 +1,61 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function FirstTimePage() {
+  const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [nieuwWachtwoord, setNieuwWachtwoord] = useState('')
   const [bevestigWachtwoord, setBevestigWachtwoord] = useState('')
+  const [bezig, setBezig] = useState(false)
+  const [fout, setFout] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const emailParam = searchParams.get('email')
+    if (emailParam) setEmail(emailParam)
+  }, [searchParams])
 
   const handleBevestigen = async (e) => {
-  e.preventDefault()
-  if (nieuwWachtwoord !== bevestigWachtwoord) {
-    alert('Wachtwoorden komen niet overeen!')
-    //
-    return
+    e.preventDefault()
+    setFout('')
+
+    if (!email || !code || !nieuwWachtwoord) {
+      setFout('Vul alle velden in!')
+      return
+    }
+
+    if (nieuwWachtwoord !== bevestigWachtwoord) {
+      setFout('Wachtwoorden komen niet overeen!')
+      return
+    }
+
+    setBezig(true)
+
+    try {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code, nieuwWachtwoord })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setFout(data.fout)
+        setBezig(false)
+        return
+      }
+
+      router.push('/authentificator/login')
+
+    } catch (error) {
+      setFout('Er is een fout opgetreden. Probeer opnieuw.')
+      setBezig(false)
+    }
   }
-  router.push('/login')
-}
 
   return (
     <div style={{
@@ -36,7 +74,6 @@ export default function FirstTimePage() {
         boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
       }}>
 
-        {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
           <svg width="36" height="36" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
             <rect width="120" height="120" rx="20" fill="#1a2340"/>
@@ -55,7 +92,26 @@ export default function FirstTimePage() {
 
         <form onSubmit={handleBevestigen}>
 
-          {/* Code */}
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
+              E-mailadres
+            </label>
+            <input
+              type="email"
+              placeholder="uw@email.be"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.65rem 0.9rem',
+                border: '1px solid #ddd',
+                borderRadius: '6px',
+                fontSize: '0.95rem',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
               Ontvangen code
@@ -76,7 +132,6 @@ export default function FirstTimePage() {
             />
           </div>
 
-          {/* Nieuw wachtwoord */}
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
               Nieuw wachtwoord
@@ -97,7 +152,6 @@ export default function FirstTimePage() {
             />
           </div>
 
-          {/* Bevestig wachtwoord */}
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
               Bevestig wachtwoord
@@ -118,9 +172,15 @@ export default function FirstTimePage() {
             />
           </div>
 
-          {/* Knop */}
+          {fout && (
+            <div style={{ color: '#dc2626', fontSize: '0.85rem', marginBottom: '1rem' }}>
+              {fout}
+            </div>
+          )}
+
           <button
             type="submit"
+            disabled={bezig}
             style={{
               width: '100%',
               padding: '0.75rem',
@@ -130,10 +190,11 @@ export default function FirstTimePage() {
               borderRadius: '6px',
               fontSize: '1rem',
               fontWeight: '600',
-              cursor: 'pointer'
+              cursor: bezig ? 'not-allowed' : 'pointer',
+              opacity: bezig ? 0.6 : 1
             }}
           >
-            Bevestigen →
+            {bezig ? 'Bezig...' : 'Bevestigen →'}
           </button>
 
         </form>
