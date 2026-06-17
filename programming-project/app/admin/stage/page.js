@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Topbar from '../component/topbar';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 const filters = ['Alle', 'Te beoordelen', 'Aanpassingen', 'Goedgekeurd', 'Actief', 'Afgekeurd'];
 
@@ -19,28 +19,15 @@ const statusKleur = (status) => {
 };
 
 export default function StagePage() {
-  const router = useRouter();
   const [stages, setStages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actieveFilter, setActieveFilter] = useState('Alle');
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token');
-
-    if (!token) {
-      router.push('/authentificator/login');
-      return;
-    }
-
-    fetch('/api/admin/stages', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    fetchMetAuth('/api/admin/stages')
+      .then(res => res?.json())
       .then(data => {
-        setStages(data);
+        if (data) setStages(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -67,15 +54,11 @@ export default function StagePage() {
       <div className="flex-1 p-6 bg-gray-50">
 
         <div className="flex justify-end mb-6">
-          <Link
-            href="/admin/stage/nieuw"
-            className="bg-[#1A2E4A] text-white text-sm px-4 py-2 rounded-lg font-medium hover:bg-[#152438]"
-          >
+          <Link href="/admin/stage/nieuw" className="bg-[#1A2E4A] text-white text-sm px-4 py-2 rounded-lg font-medium hover:bg-[#152438]">
             + Nieuwe stage
           </Link>
         </div>
 
-        {/* Filters */}
         <div className="flex gap-2 mb-6">
           {filters.map((f) => (
             <button
@@ -92,7 +75,6 @@ export default function StagePage() {
           ))}
         </div>
 
-        {/* Tabel */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
@@ -120,10 +102,7 @@ export default function StagePage() {
                     </span>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <Link
-                      href={`/admin/stage/${s.id}`}
-                      className="text-sm text-blue-600 hover:underline font-medium"
-                    >
+                    <Link href={`/admin/stage/${s.id}`} className="text-sm text-blue-600 hover:underline font-medium">
                       Detail
                     </Link>
                   </td>
