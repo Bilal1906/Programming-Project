@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
 import { verifyToken, checkRol } from '@/app/lib/auth'
+import { stuurMail } from '@/app/lib/mailer'
+import { genereerCode } from '@/app/lib/mailer'
+import { stagementorUitnodigingTemplate, stageStatusTemplate } from '@/app/lib/emailTemplates'
 
 export async function GET(request) {
   try {
@@ -25,6 +28,8 @@ export async function GET(request) {
         b.naam as bedrijf_naam,
         mu.voornaam as mentor_voornaam,
         mu.achternaam as mentor_achternaam,
+        mu.email as mentor_email,
+        sm.id as stagementor_id,
         du.voornaam as docent_voornaam,
         du.achternaam as docent_achternaam
       FROM stage s
@@ -63,6 +68,61 @@ export async function PUT(request) {
        WHERE id = ?`,
       [status, feedback_commissie, id]
     )
+
+    // Stage info ophalen voor de emails
+    const [stageRijen] = await db.query(`
+      SELECT 
+        u.voornaam as student_voornaam,
+        u.email as student_email,
+        b.naam as bedrijf_naam,
+        mu.id as mentor_user_id,
+        mu.voornaam as mentor_voornaam,
+        mu.email as mentor_email
+      FROM stage s
+      JOIN student st ON s.student_id = st.id
+      JOIN user u ON st.user_id = u.id
+      JOIN stagementor sm ON s.stagementor_id = sm.id
+      JOIN user mu ON sm.user_id = mu.id
+      JOIN bedrijf b ON sm.bedrijf_id = b.id
+      WHERE s.id = ?
+    `, [id])
+
+    if (stageRijen.length > 0) {
+      const stage = stageRijen[0]
+
+      // Email naar student (altijd)
+      await stuurMail({
+        naar: stage.student_email,
+        onderwerp: `Update over je stageaanvraag bij ${stage.bedrijf_naam}`,
+        html: stageStatusTemplate({
+          naam: stage.student_voornaam,
+          bedrijf: stage.bedrijf_naam,
+          status,
+          feedback: feedback_commissie,
+        })
+      })
+
+      // Bij goedkeuring: email naar stagementor met activatiecode
+      if (status === 'goedgekeurd') {
+        const code = genereerCode()
+        const verloopt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
+        await db.query(
+          'UPDATE user SET reset_code = ?, reset_code_expiry = ? WHERE id = ?',
+          [code, verloopt, stage.mentor_user_id]
+        )
+
+        await stuurMail({
+          naar: stage.mentor_email,
+          onderwerp: 'Welkom bij Competent — Activeer je account',
+          html: stagementorUitnodigingTemplate({
+            naam: stage.mentor_voornaam,
+            code,
+            link: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/authentificator/first-time`
+          })
+        })
+      }
+    }
 
     return NextResponse.json({ bericht: 'Stage status bijgewerkt!' })
 
