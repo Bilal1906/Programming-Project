@@ -134,7 +134,7 @@ export default function WachtwoordVergetenPage() {
             }}
             style={{ color: '#1a56db', fontSize: '0.9rem' }}
           >
-            terug naar login
+            Terug naar login
           </a>
         </div>
       </div>
