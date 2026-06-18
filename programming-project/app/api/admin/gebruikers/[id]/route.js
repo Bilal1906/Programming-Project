@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
+import bcrypt from 'bcryptjs'
 import { verifyToken, checkRol } from '@/app/lib/auth'
 
 export async function GET(request, { params }) {
@@ -33,12 +34,21 @@ export async function PUT(request, { params }) {
 
     const { id } = await params
     const body = await request.json()
-    const { voornaam, achternaam, email, telefoon, rol } = body
+    const { voornaam, achternaam, email, telefoon, rol, wachtwoord } = body
 
-    await db.query(
-      'UPDATE user SET voornaam = ?, achternaam = ?, email = ?, telefoon = ?, rol = ? WHERE id = ?',
-      [voornaam, achternaam, email, telefoon, rol, id]
-    )
+    if (wachtwoord) {
+      const hash = await bcrypt.hash(wachtwoord, 10)
+      await db.query(
+        'UPDATE user SET voornaam=?, achternaam=?, email=?, telefoon=?, rol=?, wachtwoord_hash=? WHERE id=?',
+        [voornaam, achternaam, email, telefoon, rol, hash, id]
+      )
+    } else {
+      await db.query(
+        'UPDATE user SET voornaam=?, achternaam=?, email=?, telefoon=?, rol=? WHERE id=?',
+        [voornaam, achternaam, email, telefoon, rol, id]
+      )
+    }
+
     return NextResponse.json({ bericht: 'Gebruiker bijgewerkt!' })
   } catch (error) {
     return NextResponse.json({ fout: error.message }, { status: 500 })
