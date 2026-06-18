@@ -1,40 +1,90 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Topbar from '../../component/topbar';
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function StagementorBewerkenPage() {
   const router = useRouter();
+  const { id } = useParams();
+  const [loading, setLoading] = useState(true);
+
   const [form, setForm] = useState({
-    voornaam: 'Lars',
-    achternaam: 'Vermeulen',
-    email: 'lars.vermeulen@gmail.com',
-    wachtwoord: 'Lars12345!',
-    telefoon: '+32 470 11 22 33',
-    rol: 'Stagementor',
-    id: '#65432',
-    timeOfCreation: '03/03/2026 16:04',
-    bedrijfsId: '#62',
-    functie: 'IT consultant',
-    bedrijfsnaam: 'Cegeka',
-    adres: 'Leuvensesteenweg 245, Zaventem, Vlaanderen',
-    sector: 'IT',
-    website: 'Cegeka.com',
+    voornaam: '', achternaam: '', email: '', wachtwoord: '',
+    telefoon: '', rol: '', id: '', timeOfCreation: '',
+    bedrijfsId: '', functie: '',
+    bedrijfsnaam: '', adres: '', sector: '', website: '',
   });
+
+  useEffect(() => {
+    if (!id) return;
+    fetchMetAuth(`/api/admin/stagementors/${id}`)
+      .then(res => res?.json())
+      .then(data => {
+        if (data && !data.fout) {
+          setForm({
+            voornaam: data.voornaam || '',
+            achternaam: data.achternaam || '',
+            email: data.email || '',
+            wachtwoord: '',
+            telefoon: data.telefoon || '',
+            rol: data.rol || '',
+            id: data.id || '',
+            timeOfCreation: data.created_at ? new Date(data.created_at).toLocaleString('nl-BE') : '',
+            bedrijfsId: data.bedrijf_id || '',
+            functie: data.functie || '',
+            bedrijfsnaam: data.bedrijf_naam || '',
+            adres: data.adres || '',
+            sector: data.sector || '',
+            website: data.website || '',
+          });
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [id]);
 
   const update = (veld, waarde) => setForm({ ...form, [veld]: waarde });
 
-  const handleOpslaan = () => {
-    if (window.confirm('Wijzigingen opslaan?')) {
+  const handleOpslaan = async () => {
+    if (!window.confirm('Wijzigingen opslaan?')) return;
+    const response = await fetchMetAuth(`/api/admin/stagementors/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        voornaam: form.voornaam,
+        achternaam: form.achternaam,
+        email: form.email,
+        telefoon: form.telefoon,
+        rol: form.rol,
+        functie: form.functie,
+        bedrijf_naam: form.bedrijfsnaam,
+        adres: form.adres,
+        sector: form.sector,
+        website: form.website,
+      }),
+    });
+    if (!response) return;
+    const data = await response.json();
+    if (response.ok) {
       alert('Opgeslagen!');
       router.push('/admin/stagementors');
+    } else {
+      alert(data.fout || 'Er ging iets mis');
     }
   };
 
   const handleAnnuleren = () => router.push('/admin/stagementors');
 
   const inputClass = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent";
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className="text-sm text-gray-400">Laden...</div>
+      </div>
+    );
+  }
 
   return (
     <main className="flex-1 flex flex-col">
@@ -44,7 +94,6 @@ export default function StagementorBewerkenPage() {
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Stagementor bewerken</h2>
         <p className="text-sm text-gray-400 mb-6">Bewerk de gegevens van een stagementor</p>
 
-        {/* Persoonlijke gegevens */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6">
           <p className="text-xs text-gray-400 mb-4">{form.voornaam} {form.achternaam}</p>
           <hr className="border-gray-100 mb-6" />
@@ -61,10 +110,6 @@ export default function StagementorBewerkenPage() {
             <div>
               <label className="text-xs text-gray-400 block mb-1">Email</label>
               <input type="email" value={form.email} onChange={(e) => update('email', e.target.value)} className={inputClass} />
-            </div>
-            <div>
-              <label className="text-xs text-gray-400 block mb-1">Wachtwoord</label>
-              <input type="text" value={form.wachtwoord} onChange={(e) => update('wachtwoord', e.target.value)} className={inputClass} />
             </div>
             <div>
               <label className="text-xs text-gray-400 block mb-1">Telefoon</label>
@@ -93,7 +138,6 @@ export default function StagementorBewerkenPage() {
           </div>
         </div>
 
-        {/* Bedrijfsgegevens */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
           <p className="text-xs text-gray-400 mb-4">{form.bedrijfsnaam}</p>
           <hr className="border-gray-100 mb-6" />
@@ -118,7 +162,6 @@ export default function StagementorBewerkenPage() {
           </div>
         </div>
 
-        {/* Actieknoppen */}
         <div className="flex justify-end gap-3 mt-6">
           <button onClick={handleAnnuleren} className="bg-white border border-gray-200 text-gray-700 text-sm px-5 py-2.5 rounded-lg font-medium hover:bg-gray-50">
             Annuleren
