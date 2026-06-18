@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Topbar from '../../component/topbar';
 import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function DocentBewerkenPage() {
   const router = useRouter();
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
+  const [toonWachtwoord, setToonWachtwoord] = useState(false);
 
   const [form, setForm] = useState({
     voornaam: '', achternaam: '', email: '', wachtwoord: '',
@@ -49,6 +51,7 @@ export default function DocentBewerkenPage() {
         email: form.email,
         telefoon: form.telefoon,
         rol: form.rol,
+        wachtwoord: form.wachtwoord || null,
       }),
     });
     if (!response) return;
@@ -63,8 +66,7 @@ export default function DocentBewerkenPage() {
 
   const handleAnnuleren = () => router.push('/admin/docenten');
 
-  const inputClass =
-    'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent';
+  const inputClass = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent';
 
   if (loading) {
     return (
@@ -114,6 +116,28 @@ export default function DocentBewerkenPage() {
             <div>
               <label className="text-xs text-gray-400 block mb-1">Time of Creation</label>
               <input type="text" value={form.timeOfCreation} disabled className={`${inputClass} bg-gray-50 text-gray-500`} />
+            </div>
+
+            <div className="col-span-2">
+              <label className="text-xs text-gray-400 block mb-1">
+                Nieuw wachtwoord <span className="text-gray-300">(laat leeg om niet te wijzigen)</span>
+              </label>
+              <div className="relative">
+                <input
+                  type={toonWachtwoord ? 'text' : 'password'}
+                  value={form.wachtwoord}
+                  onChange={(e) => update('wachtwoord', e.target.value)}
+                  placeholder="Nieuw wachtwoord..."
+                  className={`${inputClass} pr-10`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setToonWachtwoord(!toonWachtwoord)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {toonWachtwoord ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
