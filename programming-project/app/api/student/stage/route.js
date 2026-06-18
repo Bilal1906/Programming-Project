@@ -13,37 +13,38 @@ export async function GET(request) {
     const payload = auth.payload
 
     const [rijen] = await db.query(`
-      SELECT 
-        s.id,
-        s.status,
-        s.startdatum,
-        s.einddatum,
-        s.aantal_weken,
-        s.uren_per_week,
-        s.opdracht_omschrijving,
-        s.feedback_commissie,
-        b.naam as bedrijf_naam,
-        b.adres as bedrijf_adres,
-        b.sector,
-        b.website,
-        b.telefoon as bedrijf_telefoon,
-        mu.voornaam as mentor_voornaam,
-        mu.achternaam as mentor_achternaam,
-        mu.email as mentor_email,
-        sm.functie as mentor_functie,
-        du.voornaam as docent_voornaam,
-        du.achternaam as docent_achternaam,
-        du.email as docent_email
-      FROM stage s
-      JOIN student st ON s.student_id = st.id
-      JOIN stagementor sm ON s.stagementor_id = sm.id
-      JOIN user mu ON sm.user_id = mu.id
-      JOIN bedrijf b ON sm.bedrijf_id = b.id
-      JOIN docent d ON s.docent_id = d.id
-      JOIN user du ON d.user_id = du.id
-      WHERE st.user_id = ?
-      ORDER BY s.id DESC
-    `, [payload.id])
+  SELECT 
+    s.id,
+    s.status,
+    s.startdatum,
+    s.einddatum,
+    s.aantal_weken,
+    s.uren_per_week,
+    s.opdracht_omschrijving,
+    s.feedback_commissie,
+    s.commentaar_student,
+    b.naam as bedrijf_naam,
+    b.adres as bedrijf_adres,
+    b.sector,
+    b.website,
+    b.telefoon as bedrijf_telefoon,
+    mu.voornaam as mentor_voornaam,
+    mu.achternaam as mentor_achternaam,
+    mu.email as mentor_email,
+    sm.functie as mentor_functie,
+    du.voornaam as docent_voornaam,
+    du.achternaam as docent_achternaam,
+    du.email as docent_email
+  FROM stage s
+  JOIN student st ON s.student_id = st.id
+  JOIN stagementor sm ON s.stagementor_id = sm.id
+  JOIN user mu ON sm.user_id = mu.id
+  JOIN bedrijf b ON sm.bedrijf_id = b.id
+  LEFT JOIN docent d ON s.docent_id = d.id
+  LEFT JOIN user du ON d.user_id = du.id
+  WHERE st.user_id = ?
+  ORDER BY s.id DESC
+`, [payload.id])
 
     return NextResponse.json(rijen)
 

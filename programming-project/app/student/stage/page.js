@@ -30,6 +30,8 @@ export default function StageAanvragen() {
   const [aanvragen, setAanvragen] = useState([])
   const [loading, setLoading] = useState(true)
   const [openId, setOpenId] = useState(null)
+  const [commentaar, setCommentaar] = useState({})
+  const [bezig, setBezig] = useState(false)
 
   useEffect(() => {
     fetchMetAuth('/api/student/stage')
@@ -40,6 +42,37 @@ export default function StageAanvragen() {
       })
       .catch(() => setLoading(false))
   }, [])
+
+  const voerActieUit = async (stageId, actie) => {
+    const bevestig = {
+      accepteren: 'Weet je zeker dat je deze stage wilt accepteren? Alle andere aanvragen worden verwijderd.',
+      weigeren: 'Weet je zeker dat je deze stage wilt weigeren?',
+      aanpassen: 'Aanpassingen indienen?',
+    }
+    if (!window.confirm(bevestig[actie])) return
+
+    setBezig(true)
+    const response = await fetchMetAuth(`/api/student/stage/${stageId}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        actie,
+        commentaar_student: commentaar[stageId] || null,
+      }),
+    })
+    if (!response) { setBezig(false); return }
+    const data = await response.json()
+    if (response.ok) {
+      alert(data.bericht)
+      // herladen
+      fetchMetAuth('/api/student/stage')
+        .then(res => res?.json())
+        .then(d => setAanvragen(d ?? []))
+      setOpenId(null)
+    } else {
+      alert(data.fout || 'Er ging iets mis')
+    }
+    setBezig(false)
+  }
 
   if (loading) return <div className="flex-1 flex items-center justify-center bg-gray-100"><div className="text-sm text-gray-400">Laden...</div></div>
 
@@ -62,26 +95,73 @@ export default function StageAanvragen() {
               <div className="flex items-center justify-between px-5 py-4 cursor-pointer" onClick={() => setOpenId(openId === aanvraag.id ? null : aanvraag.id)}>
                 <div>
                   <div className="font-semibold text-sm text-gray-900">{aanvraag.bedrijf_naam}</div>
-                  <div className="text-xs text-gray-400">{new Date(aanvraag.startdatum).toLocaleDateString('nl-BE')} · Toegepaste Informatica</div>
+                  <div className="text-xs text-gray-400">{aanvraag.startdatum ? new Date(aanvraag.startdatum).toLocaleDateString('nl-BE') : '—'} · Toegepaste Informatica</div>
                 </div>
                 <div className="flex items-center gap-3">
                   {statusBadge(aanvraag.status)}
                   <span className="text-gray-400 text-sm">{openId === aanvraag.id ? '∧' : '∨'}</span>
                 </div>
               </div>
+
               {openId === aanvraag.id && (
                 <div className="px-5 pb-5 border-t border-gray-100">
                   <div className="grid grid-cols-3 gap-4 mt-4 mb-4">
                     <div><div className="text-xs text-gray-400 mb-1">Bedrijf</div><div className="text-sm font-medium">{aanvraag.bedrijf_naam}</div></div>
                     <div><div className="text-xs text-gray-400 mb-1">Stagementor</div><div className="text-sm font-medium">{aanvraag.mentor_voornaam} {aanvraag.mentor_achternaam}</div></div>
                     <div><div className="text-xs text-gray-400 mb-1">Begeleider EhB</div><div className="text-sm font-medium">{aanvraag.docent_voornaam} {aanvraag.docent_achternaam}</div></div>
-                    <div><div className="text-xs text-gray-400 mb-1">Startdatum</div><div className="text-sm font-medium">{new Date(aanvraag.startdatum).toLocaleDateString('nl-BE')}</div></div>
-                    <div><div className="text-xs text-gray-400 mb-1">Einddatum</div><div className="text-sm font-medium">{new Date(aanvraag.einddatum).toLocaleDateString('nl-BE')}</div></div>
+                    <div><div className="text-xs text-gray-400 mb-1">Startdatum</div><div className="text-sm font-medium">{aanvraag.startdatum ? new Date(aanvraag.startdatum).toLocaleDateString('nl-BE') : '—'}</div></div>
+                    <div><div className="text-xs text-gray-400 mb-1">Einddatum</div><div className="text-sm font-medium">{aanvraag.einddatum ? new Date(aanvraag.einddatum).toLocaleDateString('nl-BE') : '—'}</div></div>
                     <div><div className="text-xs text-gray-400 mb-1">Status</div><div className="text-sm font-medium">{aanvraag.status}</div></div>
                   </div>
+
+                  {/* Feedback van admin */}
                   {aanvraag.feedback_commissie && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
-                      <strong>Feedback:</strong> {aanvraag.feedback_commissie}
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 mb-3">
+                      <strong>Feedback admin:</strong> {aanvraag.feedback_commissie}
+                    </div>
+                  )}
+
+                  {/* Goedgekeurd → accepteren of weigeren */}
+                  {aanvraag.status === 'goedgekeurd' && (
+                    <div className="mt-4 flex flex-col gap-3">
+                      <p className="text-sm text-gray-600">Je stage is goedgekeurd! Wil je deze stage accepteren?</p>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => voerActieUit(aanvraag.id, 'accepteren')}
+                          disabled={bezig}
+                          className="px-5 py-2 bg-green-600 text-white text-sm rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
+                        >
+                          ✓ Accepteren
+                        </button>
+                        <button
+                          onClick={() => voerActieUit(aanvraag.id, 'weigeren')}
+                          disabled={bezig}
+                          className="px-5 py-2 bg-red-600 text-white text-sm rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
+                        >
+                          ✗ Weigeren
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Aanpassingen → commentaar + opnieuw indienen */}
+                  {aanvraag.status === 'aanpassingen' && (
+                    <div className="mt-4 flex flex-col gap-3">
+                      <p className="text-sm text-gray-600">De admin heeft aanpassingen gevraagd. Voeg een commentaar toe en dien opnieuw in.</p>
+                      <textarea
+                        value={commentaar[aanvraag.id] || ''}
+                        onChange={e => setCommentaar({ ...commentaar, [aanvraag.id]: e.target.value })}
+                        placeholder="Beschrijf je aanpassingen..."
+                        rows={3}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
+                      />
+                      <button
+                        onClick={() => voerActieUit(aanvraag.id, 'aanpassen')}
+                        disabled={bezig}
+                        className="px-5 py-2 bg-[#1e3a5f] text-white text-sm rounded-lg font-medium hover:bg-[#162d4a] disabled:opacity-50 w-fit"
+                      >
+                        Opnieuw indienen
+                      </button>
                     </div>
                   )}
                 </div>
