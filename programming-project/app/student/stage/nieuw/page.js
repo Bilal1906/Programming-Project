@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Topbar from '../../component/topbar'
+import { fetchMetAuth } from '@/app/lib/fetchMetAuth'
 
 export default function NieuweStageAanvraag() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [fout, setFout] = useState('')
+  const [student, setStudent] = useState(null)
 
   const [bedrijf, setBedrijf] = useState({
     naam: '', adres: '', sector: '', website: '', telefoon: ''
@@ -21,6 +23,13 @@ export default function NieuweStageAanvraag() {
     omschrijving: '', startdatum: '', einddatum: ''
   })
 
+  useEffect(() => {
+    fetchMetAuth('/api/user/profiel')
+      .then(res => res?.json())
+      .then(data => { if (data && !data.fout) setStudent(data) })
+      .catch(() => {})
+  }, [])
+
   const handleIndienen = async (e) => {
     e.preventDefault()
     setFout('')
@@ -32,18 +41,9 @@ export default function NieuweStageAanvraag() {
 
     setLoading(true)
 
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token')
-
     try {
-      const response = await fetch('/api/student/stage', {
+      const response = await fetchMetAuth('/api/student/stage', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
         body: JSON.stringify({
           bedrijf_naam: bedrijf.naam,
           bedrijf_adres: bedrijf.adres,
@@ -60,6 +60,7 @@ export default function NieuweStageAanvraag() {
         })
       })
 
+      if (!response) { setLoading(false); return }
       const data = await response.json()
 
       if (!response.ok) {
@@ -81,14 +82,10 @@ export default function NieuweStageAanvraag() {
 
   return (
     <div className="flex-1 flex flex-col">
-      <Topbar
-        titel="Stageaanvraag"
-        subtitel="Dashboard › Nieuwe stageaanvraag"
-      />
+      <Topbar titel="Stageaanvraag" subtitel="Dashboard › Nieuwe stageaanvraag" />
 
       <div className="flex-1 bg-gray-100 p-6 overflow-y-auto">
 
-        {/* Stappen indicator */}
         <div className="bg-white rounded-xl p-4 mb-4 flex items-center gap-4 text-sm">
           {[
             { nr: 1, label: 'Jouw gegevens' },
@@ -97,23 +94,20 @@ export default function NieuweStageAanvraag() {
             { nr: 4, label: 'Opdracht & periode' },
           ].map((stap, i) => (
             <div key={stap.nr} className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-xs flex items-center justify-center font-bold">
-                {stap.nr}
-              </div>
+              <div className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-xs flex items-center justify-center font-bold">{stap.nr}</div>
               <span className="text-gray-600 font-medium">{stap.label}</span>
               {i < 3 && <span className="text-gray-300 ml-2">——</span>}
             </div>
           ))}
         </div>
 
-        {/* Info banner */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-sm text-blue-700">
           Na het indienen wordt je aanvraag doorgestuurd naar je docent en vervolgens beoordeeld door de admin. Je ontvangt een bevestiging via e-mail zodra je stage is goedgekeurd.
         </div>
 
         <form onSubmit={handleIndienen} className="space-y-4">
 
-          {/* Jouw gegevens */}
+          {/* Jouw gegevens — echte data */}
           <div className="bg-white rounded-xl p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-xs flex items-center justify-center font-bold">1</div>
@@ -122,19 +116,19 @@ export default function NieuweStageAanvraag() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelStyle}>Naam</label>
-                <input className={`${inputStyle} bg-gray-50`} value="Bilal Jaaboub" disabled />
+                <input className={`${inputStyle} bg-gray-50`} value={student ? `${student.voornaam} ${student.achternaam}` : 'Laden...'} disabled />
               </div>
               <div>
                 <label className={labelStyle}>Opleiding</label>
-                <input className={`${inputStyle} bg-gray-50`} value="Toegepaste Informatica" disabled />
+                <input className={`${inputStyle} bg-gray-50`} value={student?.opleiding || 'Toegepaste Informatica'} disabled />
               </div>
               <div>
                 <label className={labelStyle}>Academiejaar</label>
-                <input className={`${inputStyle} bg-gray-50`} value="2025-2026" disabled />
+                <input className={`${inputStyle} bg-gray-50`} value={student?.academiejaar || '2025-2026'} disabled />
               </div>
               <div>
                 <label className={labelStyle}>E-mailadres</label>
-                <input className={`${inputStyle} bg-gray-50`} value="bilal.jaaboub@ehb.be" disabled />
+                <input className={`${inputStyle} bg-gray-50`} value={student?.email || 'Laden...'} disabled />
               </div>
             </div>
           </div>
@@ -223,35 +217,21 @@ export default function NieuweStageAanvraag() {
             </div>
           </div>
 
-          {/* Foutmelding */}
           {fout && (
             <div className="bg-red-50 text-red-600 border border-red-200 rounded-lg p-3 text-sm">
               {fout}
             </div>
           )}
 
-          {/* Knoppen */}
           <div className="flex items-center justify-between pb-6">
-            <button
-              type="button"
-              onClick={() => router.push('/student/dashboard-first')}
-              className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-            >
+            <button type="button" onClick={() => router.push('/student/dashboard-first')} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
               ← Annuleren
             </button>
             <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => router.push('/student/stage')}
-                className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-              >
+              <button type="button" onClick={() => router.push('/student/stage')} className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                 Stageaanvragen bekijken
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-5 py-2 text-sm bg-[#1e3a5f] text-white rounded-lg hover:bg-[#162d4a] cursor-pointer font-medium disabled:opacity-50"
-              >
+              <button type="submit" disabled={loading} className="px-5 py-2 text-sm bg-[#1e3a5f] text-white rounded-lg hover:bg-[#162d4a] cursor-pointer font-medium disabled:opacity-50">
                 {loading ? 'Bezig...' : 'Aanvraag indienen'}
               </button>
             </div>

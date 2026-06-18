@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Topbar from '../../component/topbar';
 import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
-export default function StagementorDocumentPage() {
+export default function StudentDocumentPage() {
   const { id } = useParams();
   const [doc, setDoc] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,7 @@ export default function StagementorDocumentPage() {
       body: JSON.stringify({ stage_id: parseInt(id) }),
     });
     if (response?.ok) {
-      setDoc(prev => ({ ...prev, signed_stagementor: 1, document_status: prev.signed_student ? 'ondertekend' : 'in_afwachting' }));
+      setDoc(prev => ({ ...prev, signed_student: 1, document_status: prev.signed_stagementor ? 'ondertekend' : 'in_afwachting' }));
       alert('Document succesvol ondertekend!');
     } else {
       alert('Er is een fout opgetreden.');
@@ -35,10 +35,7 @@ export default function StagementorDocumentPage() {
 
   const handleDownload = async () => {
     const response = await fetchMetAuth(`/api/admin/stages/${id}/pdf`);
-    if (!response || !response.ok) {
-      alert('Fout bij downloaden');
-      return;
-    }
+    if (!response || !response.ok) { alert('Fout bij downloaden'); return; }
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -52,11 +49,11 @@ export default function StagementorDocumentPage() {
   if (!doc) return <div className="flex-1 flex items-center justify-center bg-gray-100"><div className="text-sm text-gray-400">Document niet gevonden.</div></div>;
 
   const isOndertekend = doc.document_status === 'ondertekend';
-  const ikHebGetekend = doc.signed_stagementor === 1;
+  const ikHebGetekend = doc.signed_student === 1;
 
   return (
     <div>
-      <Topbar title={`Stageovereenkomst — ${doc.student_voornaam} ${doc.student_achternaam}`} backHref="/stagementor/documenten" backLabel="Documenten" />
+      <Topbar title="Stageovereenkomst" backHref="/student/documenten" backLabel="Documenten" />
       <div className="p-6">
         <div className="grid grid-cols-12 gap-6">
 

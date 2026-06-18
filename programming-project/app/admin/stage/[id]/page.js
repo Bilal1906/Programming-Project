@@ -29,6 +29,7 @@ export default function StageDetailPage() {
     fetchMetAuth(`/api/admin/stages/${id}`)
       .then(res => res?.json())
       .then(data => {
+        console.log('stage data:', data);
         if (data && !data.fout) {
           setStatus(data.status || '');
           setForm({
@@ -69,6 +70,12 @@ export default function StageDetailPage() {
 
   const update = (veld, waarde) => setForm({ ...form, [veld]: waarde });
 
+  const isGesloten = status === 'goedgekeurd' || status === 'actief';
+
+  const inputClass = isGesloten
+    ? 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-500 bg-gray-50'
+    : 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent';
+
   const verstuur = async (nieuweStatus) => {
     const teksten = {
       goedgekeurd: 'Weet u zeker dat u deze stage wilt goedkeuren?',
@@ -92,8 +99,6 @@ export default function StageDetailPage() {
       setBezig(false);
     }
   };
-
-  const inputClass = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent';
 
   if (loading) {
     return (
@@ -120,31 +125,31 @@ export default function StageDetailPage() {
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Voornaam</label>
-                  <input type="text" value={form.student_voornaam} onChange={(e) => update('student_voornaam', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.student_voornaam} onChange={(e) => update('student_voornaam', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Achternaam</label>
-                  <input type="text" value={form.student_achternaam} onChange={(e) => update('student_achternaam', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.student_achternaam} onChange={(e) => update('student_achternaam', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Opleiding</label>
-                  <input type="text" value={form.opleiding} onChange={(e) => update('opleiding', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.opleiding} onChange={(e) => update('opleiding', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Academiejaar</label>
-                  <input type="text" value={form.academiejaar} onChange={(e) => update('academiejaar', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.academiejaar} onChange={(e) => update('academiejaar', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">E-mail</label>
-                  <input type="email" value={form.student_email} onChange={(e) => update('student_email', e.target.value)} className={inputClass} />
+                  <input type="email" value={form.student_email} onChange={(e) => update('student_email', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Telefoon</label>
-                  <input type="tel" value={form.student_telefoon} onChange={(e) => update('student_telefoon', e.target.value)} className={inputClass} />
+                  <input type="tel" value={form.student_telefoon} onChange={(e) => update('student_telefoon', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div className="col-span-2">
                   <label className="text-xs text-gray-400 block mb-1">Adres</label>
-                  <input type="text" value={form.student_adres} onChange={(e) => update('student_adres', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.student_adres} onChange={(e) => update('student_adres', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
               </div>
             </div>
@@ -155,19 +160,19 @@ export default function StageDetailPage() {
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Bedrijfsnaam</label>
-                  <input type="text" value={form.bedrijf_naam} onChange={(e) => update('bedrijf_naam', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.bedrijf_naam} onChange={(e) => update('bedrijf_naam', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Adres</label>
-                  <input type="text" value={form.bedrijf_adres} onChange={(e) => update('bedrijf_adres', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.bedrijf_adres} onChange={(e) => update('bedrijf_adres', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Sector</label>
-                  <input type="text" value={form.sector} onChange={(e) => update('sector', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.sector} onChange={(e) => update('sector', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Website</label>
-                  <input type="text" value={form.website} onChange={(e) => update('website', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.website} onChange={(e) => update('website', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
               </div>
 
@@ -175,23 +180,23 @@ export default function StageDetailPage() {
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Voornaam</label>
-                  <input type="text" value={form.mentor_voornaam} onChange={(e) => update('mentor_voornaam', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.mentor_voornaam} onChange={(e) => update('mentor_voornaam', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Achternaam</label>
-                  <input type="text" value={form.mentor_achternaam} onChange={(e) => update('mentor_achternaam', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.mentor_achternaam} onChange={(e) => update('mentor_achternaam', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">E-mail</label>
-                  <input type="email" value={form.mentor_email} onChange={(e) => update('mentor_email', e.target.value)} className={inputClass} />
+                  <input type="email" value={form.mentor_email} onChange={(e) => update('mentor_email', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Telefoon</label>
-                  <input type="tel" value={form.mentor_telefoon} onChange={(e) => update('mentor_telefoon', e.target.value)} className={inputClass} />
+                  <input type="tel" value={form.mentor_telefoon} onChange={(e) => update('mentor_telefoon', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div className="col-span-2">
                   <label className="text-xs text-gray-400 block mb-1">Functie</label>
-                  <input type="text" value={form.mentor_functie} onChange={(e) => update('mentor_functie', e.target.value)} className={inputClass} />
+                  <input type="text" value={form.mentor_functie} onChange={(e) => update('mentor_functie', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
               </div>
             </div>
@@ -201,24 +206,24 @@ export default function StageDetailPage() {
               <h3 className="text-sm font-semibold text-gray-500 mb-4">Sectie 3 — Opdracht & periode</h3>
               <div className="mb-4">
                 <label className="text-xs text-gray-400 block mb-1">Omschrijving van de opdracht</label>
-                <textarea value={form.opdracht_omschrijving} onChange={(e) => update('opdracht_omschrijving', e.target.value)} rows={3} className={`${inputClass} resize-none`} />
+                <textarea value={form.opdracht_omschrijving} onChange={(e) => update('opdracht_omschrijving', e.target.value)} rows={3} disabled={isGesloten} className={`${inputClass} resize-none`} />
               </div>
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Startdatum</label>
-                  <input type="date" value={form.startdatum} onChange={(e) => update('startdatum', e.target.value)} className={inputClass} />
+                  <input type="date" value={form.startdatum} onChange={(e) => update('startdatum', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Einddatum</label>
-                  <input type="date" value={form.einddatum} onChange={(e) => update('einddatum', e.target.value)} className={inputClass} />
+                  <input type="date" value={form.einddatum} onChange={(e) => update('einddatum', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Aantal weken</label>
-                  <input type="number" value={form.aantal_weken} onChange={(e) => update('aantal_weken', e.target.value)} className={inputClass} />
+                  <input type="number" value={form.aantal_weken} onChange={(e) => update('aantal_weken', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Uren per week</label>
-                  <input type="number" value={form.uren_per_week} onChange={(e) => update('uren_per_week', e.target.value)} className={inputClass} />
+                  <input type="number" value={form.uren_per_week} onChange={(e) => update('uren_per_week', e.target.value)} disabled={isGesloten} className={inputClass} />
                 </div>
               </div>
             </div>
@@ -232,7 +237,7 @@ export default function StageDetailPage() {
               <h3 className="text-sm font-bold text-gray-900 mb-1">Docent</h3>
               <p className="text-xs text-gray-400 mb-4">De docent die de student zal opvolgen tijdens de stage.</p>
               <label className="text-xs text-gray-400 block mb-1">Docent voor deze stage</label>
-              <select value={form.docent_id || ''} onChange={(e) => update('docent_id', e.target.value)} className={inputClass}>
+              <select value={form.docent_id || ''} onChange={(e) => update('docent_id', e.target.value)} disabled={isGesloten} className={inputClass}>
                 <option value="">Selecteer docent</option>
                 {docenten.map((d) => (
                   <option key={d.id} value={d.id}>{d.voornaam} {d.achternaam}</option>
@@ -240,18 +245,25 @@ export default function StageDetailPage() {
               </select>
             </div>
 
-            <div className="bg-orange-50 rounded-xl border border-orange-100 p-5">
-              <h3 className="text-sm font-bold text-gray-900 mb-1">Beoordeling</h3>
-              <p className="text-xs text-gray-400 mb-1">Huidige status: <span className="font-medium">{status}</span></p>
-              <p className="text-xs text-gray-400 mb-4">Beoordeel de stageaanvraag</p>
-              <label className="text-xs text-gray-500 block mb-2">Feedback (bij aanpassingen)</label>
-              <textarea value={form.feedback_commissie} onChange={(e) => update('feedback_commissie', e.target.value)} placeholder="Geef duidelijke feedback..." className={`${inputClass} mb-4 resize-none bg-white`} rows={3} />
-              <div className="flex flex-col gap-2">
-                <button onClick={() => verstuur('goedgekeurd')} disabled={bezig} className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[#065F46] hover:bg-[#054F3B] disabled:opacity-50 transition-colors">Goedkeuren</button>
-                <button onClick={() => verstuur('aanpassingen')} disabled={bezig} className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[#D97706] hover:bg-[#B45309] disabled:opacity-50 transition-colors">Aanpassingen vereist</button>
-                <button onClick={() => verstuur('afgekeurd')} disabled={bezig} className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 transition-colors">Afkeuren</button>
+            {!isGesloten ? (
+              <div className="bg-orange-50 rounded-xl border border-orange-100 p-5">
+                <h3 className="text-sm font-bold text-gray-900 mb-1">Beoordeling</h3>
+                <p className="text-xs text-gray-400 mb-1">Huidige status: <span className="font-medium">{status}</span></p>
+                <p className="text-xs text-gray-400 mb-4">Beoordeel de stageaanvraag</p>
+                <label className="text-xs text-gray-500 block mb-2">Feedback (bij aanpassingen)</label>
+                <textarea value={form.feedback_commissie} onChange={(e) => update('feedback_commissie', e.target.value)} placeholder="Geef duidelijke feedback..." className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 mb-4 resize-none bg-white focus:outline-none focus:ring-2 focus:ring-[#1A2E4A] focus:border-transparent" rows={3} />
+                <div className="flex flex-col gap-2">
+                  <button onClick={() => verstuur('goedgekeurd')} disabled={bezig} className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[#065F46] hover:bg-[#054F3B] disabled:opacity-50 transition-colors">Goedkeuren</button>
+                  <button onClick={() => verstuur('aanpassingen')} disabled={bezig} className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[#D97706] hover:bg-[#B45309] disabled:opacity-50 transition-colors">Aanpassingen vereist</button>
+                  <button onClick={() => verstuur('afgekeurd')} disabled={bezig} className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 transition-colors">Afkeuren</button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-green-50 rounded-xl border border-green-100 p-5">
+                <h3 className="text-sm font-bold text-gray-900 mb-1">Status</h3>
+                <p className="text-sm text-gray-600">Deze stage is <span className="font-semibold">{status}</span> en kan niet meer worden beoordeeld.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
