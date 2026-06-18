@@ -13,38 +13,26 @@ export async function GET(request) {
     const payload = auth.payload
 
     const [rijen] = await db.query(`
-  SELECT 
-    s.id,
-    s.status,
-    s.startdatum,
-    s.einddatum,
-    s.aantal_weken,
-    s.uren_per_week,
-    s.opdracht_omschrijving,
-    s.feedback_commissie,
-    s.commentaar_student,
-    b.naam as bedrijf_naam,
-    b.adres as bedrijf_adres,
-    b.sector,
-    b.website,
-    b.telefoon as bedrijf_telefoon,
-    mu.voornaam as mentor_voornaam,
-    mu.achternaam as mentor_achternaam,
-    mu.email as mentor_email,
-    sm.functie as mentor_functie,
-    du.voornaam as docent_voornaam,
-    du.achternaam as docent_achternaam,
-    du.email as docent_email
-  FROM stage s
-  JOIN student st ON s.student_id = st.id
-  JOIN stagementor sm ON s.stagementor_id = sm.id
-  JOIN user mu ON sm.user_id = mu.id
-  JOIN bedrijf b ON sm.bedrijf_id = b.id
-  LEFT JOIN docent d ON s.docent_id = d.id
-  LEFT JOIN user du ON d.user_id = du.id
-  WHERE st.user_id = ?
-  ORDER BY s.id DESC
-`, [payload.id])
+      SELECT 
+        s.id, s.status, s.startdatum, s.einddatum,
+        s.aantal_weken, s.uren_per_week,
+        s.opdracht_omschrijving, s.feedback_commissie, s.commentaar_student,
+        b.naam as bedrijf_naam, b.adres as bedrijf_adres,
+        b.sector, b.website, b.telefoon as bedrijf_telefoon,
+        mu.voornaam as mentor_voornaam, mu.achternaam as mentor_achternaam,
+        mu.email as mentor_email, sm.functie as mentor_functie,
+        du.voornaam as docent_voornaam, du.achternaam as docent_achternaam,
+        du.email as docent_email
+      FROM stage s
+      JOIN student st ON s.student_id = st.id
+      JOIN stagementor sm ON s.stagementor_id = sm.id
+      JOIN user mu ON sm.user_id = mu.id
+      JOIN bedrijf b ON sm.bedrijf_id = b.id
+      LEFT JOIN docent d ON s.docent_id = d.id
+      LEFT JOIN user du ON d.user_id = du.id
+      WHERE st.user_id = ?
+      ORDER BY s.id DESC
+    `, [payload.id])
 
     return NextResponse.json(rijen)
 
@@ -71,6 +59,12 @@ export async function POST(request) {
       opdracht_omschrijving, startdatum, einddatum
     } = body
 
+    // aantal_weken en uren_per_week automatisch berekenen
+    const start = new Date(startdatum)
+    const eind = new Date(einddatum)
+    const aantal_weken = Math.round((eind - start) / (7 * 24 * 60 * 60 * 1000))
+    const uren_per_week = 40
+
     const [studentRijen] = await db.query(
       'SELECT id FROM student WHERE user_id = ?',
       [payload.id]
@@ -86,9 +80,13 @@ export async function POST(request) {
     )
     const bedrijf_id = bedrijfResult.insertId
 
+    const naamDelen = mentor_naam.trim().split(' ')
+    const mentor_voornaam = naamDelen[0]
+    const mentor_achternaam = naamDelen.slice(1).join(' ') || ''
+
     const [mentorUserResult] = await db.query(
       'INSERT INTO user (voornaam, achternaam, email, telefoon, rol) VALUES (?, ?, ?, ?, ?)',
-      [mentor_naam.split(' ')[0], mentor_naam.split(' ')[1] || '', mentor_email, mentor_telefoon, 'stagementor']
+      [mentor_voornaam, mentor_achternaam, mentor_email, mentor_telefoon, 'stagementor']
     )
     const mentor_user_id = mentorUserResult.insertId
 
@@ -100,9 +98,9 @@ export async function POST(request) {
 
     await db.query(
       `INSERT INTO stage 
-        (student_id, docent_id, stagementor_id, opdracht_omschrijving, startdatum, einddatum, status, ingediend_op) 
-       VALUES (?, ?, ?, ?, ?, ?, 'ingediend', NOW())`,
-      [student_id, docent_id, stagementor_id, opdracht_omschrijving, startdatum, einddatum]
+        (student_id, docent_id, stagementor_id, opdracht_omschrijving, startdatum, einddatum, aantal_weken, uren_per_week, status, ingediend_op) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ingediend', NOW())`,
+      [student_id, docent_id, stagementor_id, opdracht_omschrijving, startdatum, einddatum, aantal_weken, uren_per_week]
     )
 
     return NextResponse.json({ bericht: 'Stage ingediend!' })
