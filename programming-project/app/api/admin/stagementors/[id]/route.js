@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
 import { verifyToken, checkRol } from '@/app/lib/auth'
+import bcrypt from 'bcryptjs'
 
 export async function GET(request, { params }) {
   try {
@@ -39,19 +40,26 @@ export async function PUT(request, { params }) {
 
     const { id } = await params
     const body = await request.json()
-    const { voornaam, achternaam, email, telefoon, rol, functie, bedrijf_naam, adres, sector, website } = body
+    const { voornaam, achternaam, email, telefoon, rol, functie, bedrijf_naam, adres, sector, website, wachtwoord } = body
 
-    await db.query(
-      'UPDATE user SET voornaam=?, achternaam=?, email=?, telefoon=?, rol=? WHERE id=?',
-      [voornaam, achternaam, email, telefoon, rol, id]
-    )
+    if (wachtwoord) {
+      const hash = await bcrypt.hash(wachtwoord, 10)
+      await db.query(
+        'UPDATE user SET voornaam=?, achternaam=?, email=?, telefoon=?, rol=?, wachtwoord_hash=? WHERE id=?',
+        [voornaam, achternaam, email, telefoon, rol, hash, id]
+      )
+    } else {
+      await db.query(
+        'UPDATE user SET voornaam=?, achternaam=?, email=?, telefoon=?, rol=? WHERE id=?',
+        [voornaam, achternaam, email, telefoon, rol, id]
+      )
+    }
 
     await db.query(
       'UPDATE stagementor SET functie=? WHERE user_id=?',
       [functie, id]
     )
 
-    // bedrijf updaten via de bedrijf_id van deze stagementor
     const [smRows] = await db.query('SELECT bedrijf_id FROM stagementor WHERE user_id = ?', [id])
     const bedrijf_id = smRows[0]?.bedrijf_id
     if (bedrijf_id) {
