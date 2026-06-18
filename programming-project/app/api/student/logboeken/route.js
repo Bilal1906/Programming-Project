@@ -80,3 +80,24 @@ export async function POST(request) {
     return NextResponse.json({ fout: error.message }, { status: 500 })
   }
 }
+
+export async function PUT(request) {
+  try {
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
+    const rolFout = checkRol(auth.payload, ['student'])
+    if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
+
+    const body = await request.json()
+    const { logboek_week_id } = body
+
+    await db.query(
+      `UPDATE logboek_week SET status = 'ingediend', ingediend_op = NOW() WHERE id = ?`,
+      [logboek_week_id]
+    )
+
+    return NextResponse.json({ bericht: 'Logboek ingediend!' })
+  } catch (error) {
+    return NextResponse.json({ fout: error.message }, { status: 500 })
+  }
+}
