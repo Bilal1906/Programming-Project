@@ -13,28 +13,33 @@ export default function StudentDashboardActief() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1] || localStorage.getItem('token')
+  const token = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('token='))
+    ?.split('=')[1] || localStorage.getItem('token')
 
-    if (!token) {
-      router.push('/authentificator/login')
+  if (!token) {
+    router.push('/authentificator/login')
+    return
+  }
+
+  const payload = JSON.parse(atob(token.split('.')[1]))
+  setGebruiker(payload)
+
+  Promise.all([
+    fetchMetAuth('/api/student/stage').then(r => r?.json()),
+    fetchMetAuth('/api/student/logboeken').then(r => r?.json()),
+  ]).then(([stageData, logboekenData]) => {
+    const actieveStage = stageData?.find(s => s.status === 'actief')
+    if (!actieveStage) {
+      router.push('/student/dashboard-first')
       return
     }
-
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    setGebruiker(payload)
-
-    Promise.all([
-      fetchMetAuth('/api/student/stage').then(r => r?.json()),
-      fetchMetAuth('/api/student/logboeken').then(r => r?.json()),
-    ]).then(([stageData, logboekenData]) => {
-      if (stageData?.length > 0) setStage(stageData[0])
-      setLogboeken(logboekenData ?? [])
-      setLoading(false)
-    }).catch(() => setLoading(false))
-  }, [])
+    setStage(actieveStage)
+    setLogboeken(logboekenData ?? [])
+    setLoading(false)
+  }).catch(() => setLoading(false))
+}, [])
 
   if (loading) {
     return (
