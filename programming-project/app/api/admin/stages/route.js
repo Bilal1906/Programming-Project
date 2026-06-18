@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
 import { verifyToken, checkRol } from '@/app/lib/auth'
-import { stuurMail } from '@/app/lib/mailer'
-import { genereerCode } from '@/app/lib/mailer'
+import { stuurMail, genereerCode } from '@/app/lib/mailer'
 import { stagementorUitnodigingTemplate, stageStatusTemplate } from '@/app/lib/emailTemplates'
 
 export async function GET(request) {
   try {
     const auth = verifyToken(request)
     if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
-
     const rolFout = checkRol(auth.payload, ['admin'])
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
@@ -55,7 +53,6 @@ export async function PUT(request) {
   try {
     const auth = verifyToken(request)
     if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
-
     const rolFout = checkRol(auth.payload, ['admin', 'commissie'])
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
@@ -63,13 +60,10 @@ export async function PUT(request) {
     const { id, status, feedback_commissie } = body
 
     await db.query(
-      `UPDATE stage 
-       SET status = ?, feedback_commissie = ?, goedgekeurd_op = NOW()
-       WHERE id = ?`,
+      `UPDATE stage SET status = ?, feedback_commissie = ?, goedgekeurd_op = NOW() WHERE id = ?`,
       [status, feedback_commissie, id]
     )
 
-    // Stage info ophalen voor de emails
     const [stageRijen] = await db.query(`
       SELECT 
         u.voornaam as student_voornaam,
@@ -90,7 +84,6 @@ export async function PUT(request) {
     if (stageRijen.length > 0) {
       const stage = stageRijen[0]
 
-      // Email naar student (altijd)
       await stuurMail({
         naar: stage.student_email,
         onderwerp: `Update over je stageaanvraag bij ${stage.bedrijf_naam}`,
@@ -102,7 +95,6 @@ export async function PUT(request) {
         })
       })
 
-      // Bij goedkeuring: email naar stagementor met activatiecode
       if (status === 'goedgekeurd') {
         const code = genereerCode()
         const verloopt = new Date(Date.now() + 24 * 60 * 60 * 1000)
@@ -128,6 +120,67 @@ export async function PUT(request) {
 
   } catch (error) {
     console.error('Stage updaten fout:', error)
+    return NextResponse.json({ fout: error.message }, { status: 500 })
+  }
+}
+
+export async function POST(request) {
+  try {
+    const auth = verifyToken(request)
+    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
+    const rolFout = checkRol(auth.payload, ['admin'])
+    if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
+
+    const body = await request.json()
+    const {
+      student_email, opleiding, academiejaar, telefoon,
+      bedrijf_naam, bedrijf_adres, sector, website,
+      mentor_voornaam, mentor_achternaam, mentor_email, mentor_telefoon, mentor_functie,
+      opdracht_omschrijving, startdatum, einddatum, docent_id,
+    } = body
+
+    // 1. student zoeken op email
+    const [studentRijen] = await db.query(`
+      SELECT st.id FROM student st
+      JOIN user u ON st.user_id = u.id
+      WHERE u.email = ?
+    `, [student_email])
+
+    if (studentRijen.length === 0) {
+      return NextResponse.json({ fout: 'Geen student gevonden met dit e-mailadres.' }, { status: 404 })
+    }
+    const student_id = studentRijen[0].id
+
+    // 2. bedrijf aanmaken
+    const [bedrijfResult] = await db.query(
+      'INSERT INTO bedrijf (naam, adres, sector, website) VALUES (?, ?, ?, ?)',
+      [bedrijf_naam, bedrijf_adres, sector, website]
+    )
+    const bedrijf_id = bedrijfResult.insertId
+
+    // 3. mentor user aanmaken
+    const [userResult] = await db.query(
+      `INSERT INTO user (voornaam, achternaam, email, telefoon, rol) VALUES (?, ?, ?, ?, 'stagementor')`,
+      [mentor_voornaam, mentor_achternaam, mentor_email, mentor_telefoon]
+    )
+    const mentor_user_id = userResult.insertId
+
+    // 4. stagementor aanmaken
+    const [smResult] = await db.query(
+      'INSERT INTO stagementor (user_id, bedrijf_id, functie) VALUES (?, ?, ?)',
+      [mentor_user_id, bedrijf_id, mentor_functie]
+    )
+    const stagementor_id = smResult.insertId
+
+    // 5. stage aanmaken
+    const [stageResult] = await db.query(
+      `INSERT INTO stage (student_id, docent_id, stagementor_id, opdracht_omschrijving, startdatum, einddatum, status, ingediend_op)
+       VALUES (?, ?, ?, ?, ?, ?, 'ingediend', NOW())`,
+      [student_id, docent_id || null, stagementor_id, opdracht_omschrijving, startdatum || null, einddatum || null]
+    )
+
+    return NextResponse.json({ bericht: 'Stage aangemaakt!', id: stageResult.insertId })
+  } catch (error) {
     return NextResponse.json({ fout: error.message }, { status: 500 })
   }
 }
