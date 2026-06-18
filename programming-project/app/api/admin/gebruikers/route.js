@@ -12,9 +12,17 @@ export async function GET(request) {
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
     const [rijen] = await db.query(`
-      SELECT id, voornaam, achternaam, email, telefoon, rol, created_at
-      FROM user
-      ORDER BY created_at DESC
+      SELECT u.id, u.voornaam, u.achternaam, u.email, u.telefoon, u.rol, u.created_at
+      FROM user u
+      WHERE u.rol != 'stagementor'
+        OR (
+          u.rol = 'stagementor' AND EXISTS (
+            SELECT 1 FROM stagementor sm
+            JOIN stage s ON s.stagementor_id = sm.id
+            WHERE sm.user_id = u.id AND s.status = 'actief'
+          )
+        )
+      ORDER BY u.created_at DESC
     `)
 
     return NextResponse.json(rijen)
