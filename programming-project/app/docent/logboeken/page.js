@@ -11,7 +11,7 @@ export default function DocentLogboeken() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchMetAuth('/api/stagementor/logboeken')
+    fetchMetAuth('/api/docent/logboeken')
       .then(res => res?.json())
       .then(data => {
         setLogboeken(data ?? [])

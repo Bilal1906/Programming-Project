@@ -1,5 +1,5 @@
 import DocentSidebar from "./component/sidebar";
-import AuthGuard from './component/authGuard';
+import AuthGuard from './component/AuthGuard';
 
 export default function DocentLayout({ children }) {
   return (
