@@ -44,6 +44,10 @@ export default function StageAanvragen() {
   }, [])
 
   const voerActieUit = async (stageId, actie) => {
+    if (actie === 'aanpassen' && !commentaar[stageId]?.trim()) {
+      alert('Voeg een commentaar toe of klik op "Aanvraag bewerken" om je aanvraag te wijzigen.')
+      return
+    }
     const bevestig = {
       accepteren: 'Weet je zeker dat je deze stage wilt accepteren? Alle andere aanvragen worden verwijderd.',
       weigeren: 'Weet je zeker dat je deze stage wilt weigeren?',
@@ -63,7 +67,6 @@ export default function StageAanvragen() {
     const data = await response.json()
     if (response.ok) {
       alert(data.bericht)
-      // herladen
       fetchMetAuth('/api/student/stage')
         .then(res => res?.json())
         .then(d => setAanvragen(d ?? []))
@@ -114,54 +117,55 @@ export default function StageAanvragen() {
                     <div><div className="text-xs text-gray-400 mb-1">Status</div><div className="text-sm font-medium">{aanvraag.status}</div></div>
                   </div>
 
-                  {/* Feedback van admin */}
                   {aanvraag.feedback_commissie && (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 mb-3">
                       <strong>Feedback admin:</strong> {aanvraag.feedback_commissie}
                     </div>
                   )}
 
-                  {/* Goedgekeurd → accepteren of weigeren */}
                   {aanvraag.status === 'goedgekeurd' && (
                     <div className="mt-4 flex flex-col gap-3">
                       <p className="text-sm text-gray-600">Je stage is goedgekeurd! Wil je deze stage accepteren?</p>
                       <div className="flex gap-3">
-                        <button
-                          onClick={() => voerActieUit(aanvraag.id, 'accepteren')}
-                          disabled={bezig}
-                          className="px-5 py-2 bg-green-600 text-white text-sm rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
-                        >
+                        <button onClick={() => voerActieUit(aanvraag.id, 'accepteren')} disabled={bezig} className="px-5 py-2 bg-green-600 text-white text-sm rounded-lg font-medium hover:bg-green-700 disabled:opacity-50">
                           ✓ Accepteren
                         </button>
-                        <button
-                          onClick={() => voerActieUit(aanvraag.id, 'weigeren')}
-                          disabled={bezig}
-                          className="px-5 py-2 bg-red-600 text-white text-sm rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
-                        >
+                        <button onClick={() => voerActieUit(aanvraag.id, 'weigeren')} disabled={bezig} className="px-5 py-2 bg-red-600 text-white text-sm rounded-lg font-medium hover:bg-red-700 disabled:opacity-50">
                           ✗ Weigeren
                         </button>
                       </div>
                     </div>
                   )}
 
-                  {/* Aanpassingen → commentaar + opnieuw indienen */}
                   {aanvraag.status === 'aanpassingen' && (
                     <div className="mt-4 flex flex-col gap-3">
-                      <p className="text-sm text-gray-600">De admin heeft aanpassingen gevraagd. Voeg een commentaar toe en dien opnieuw in.</p>
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm text-orange-800">
+                        <strong>Aanpassingen gevraagd.</strong> Je kan een commentaar toevoegen en opnieuw indienen, of je aanvraag volledig bewerken.
+                      </div>
+
                       <textarea
                         value={commentaar[aanvraag.id] || ''}
                         onChange={e => setCommentaar({ ...commentaar, [aanvraag.id]: e.target.value })}
-                        placeholder="Beschrijf je aanpassingen..."
+                        placeholder="Voeg een commentaar toe (verplicht bij opnieuw indienen zonder bewerken)..."
                         rows={3}
                         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
                       />
-                      <button
-                        onClick={() => voerActieUit(aanvraag.id, 'aanpassen')}
-                        disabled={bezig}
-                        className="px-5 py-2 bg-[#1e3a5f] text-white text-sm rounded-lg font-medium hover:bg-[#162d4a] disabled:opacity-50 w-fit"
-                      >
-                        Opnieuw indienen
-                      </button>
+
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => router.push(`/student/stage/${aanvraag.id}/bewerken`)}
+                          className="px-5 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-lg font-medium hover:bg-gray-50"
+                        >
+                          ✏️ Aanvraag bewerken
+                        </button>
+                        <button
+                          onClick={() => voerActieUit(aanvraag.id, 'aanpassen')}
+                          disabled={bezig}
+                          className="px-5 py-2 bg-[#1e3a5f] text-white text-sm rounded-lg font-medium hover:bg-[#162d4a] disabled:opacity-50"
+                        >
+                          Opnieuw indienen met commentaar
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
