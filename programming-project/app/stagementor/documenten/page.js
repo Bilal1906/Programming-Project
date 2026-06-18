@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import Topbar from '../component/topbar';
 import { FileText, Download } from 'lucide-react';
 import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
@@ -17,11 +16,10 @@ export default function DocumentenPage() {
       .then(data => {
         if (data) {
           setStagiairs(data);
-          // Initialiseer ondertekend status vanuit database
           const statusMap = {};
           data.forEach(s => {
             if (s.document_status === 'ondertekend') {
-            statusMap[s.stage_id] = true;
+              statusMap[s.stage_id] = true;
             }
           });
           setOndertekend(statusMap);
@@ -34,18 +32,29 @@ export default function DocumentenPage() {
   const handleOndertekenen = async (stage_id) => {
     const response = await fetchMetAuth('/api/student/documenten/ondertekenen', {
       method: 'PUT',
-      body: JSON.stringify({
-        stage_id,
-        type: 'stageovereenkomst'
-      })
+      body: JSON.stringify({ stage_id }),
     });
-
     if (response?.ok) {
       setOndertekend(prev => ({ ...prev, [stage_id]: true }));
       alert('Document succesvol ondertekend!');
     } else {
       alert('Er is een fout opgetreden.');
     }
+  };
+
+  const handleDownload = async (stage_id) => {
+    const response = await fetchMetAuth(`/api/admin/stages/${stage_id}/pdf`);
+    if (!response || !response.ok) {
+      alert('Fout bij downloaden');
+      return;
+    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stageovereenkomst-${stage_id}.pdf`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -72,7 +81,6 @@ export default function DocumentenPage() {
 
               <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
 
-                {/* Stageovereenkomst */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-[#1e3a5f] grid place-items-center flex-shrink-0">
@@ -96,14 +104,16 @@ export default function DocumentenPage() {
                         Document ondertekenen
                       </button>
                     )}
-                    <button className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                    <button
+                      onClick={() => handleDownload(s.stage_id)}
+                      className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
+                    >
                       <Download size={16} />
                       Downloaden
                     </button>
                   </div>
                 </div>
 
-                {/* Eindverslag */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-[#fef3c7] grid place-items-center flex-shrink-0">
