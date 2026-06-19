@@ -14,7 +14,8 @@ export default function LogboekenPage() {
     fetchMetAuth('/api/stagementor/logboeken')
       .then(res => res?.json())
       .then(data => {
-        if (data) setLogboeken(data);
+        if (data?.weken) setLogboeken(data.weken);
+        else if (Array.isArray(data)) setLogboeken(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -27,12 +28,12 @@ export default function LogboekenPage() {
     return acc;
   }, {});
 
-  const formatDatum = (datum) => {
-    if (!datum) return '';
-    return new Date(datum).toLocaleDateString('nl-BE', {
+  const fmt = (dateStr) => {
+    if (!dateStr) return ''
+    return new Date(dateStr + 'T12:00:00').toLocaleDateString('nl-BE', {
       day: '2-digit', month: 'short', year: 'numeric'
-    });
-  };
+    })
+  }
 
   if (loading) {
     return (
@@ -43,19 +44,19 @@ export default function LogboekenPage() {
   }
 
   return (
-    <div>
-      <Topbar title="Logboeken" subtitle="2025 - 2026" />
+    <div className="flex-1 flex flex-col">
+      <Topbar titel="Logboeken" subtitel="2025 - 2026" />
 
-      <div className="p-6 flex flex-col gap-6">
+      <div className="flex-1 bg-gray-100 p-6 flex flex-col gap-6">
         {Object.keys(perStudent).length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-lg px-5 py-10 text-center">
+          <div className="bg-white border border-gray-200 rounded-xl px-5 py-10 text-center">
             <p className="text-sm text-gray-400">Geen logboeken gevonden</p>
           </div>
         ) : (
           Object.entries(perStudent).map(([naam, weken]) => (
             <div key={naam}>
               <p className="text-xs text-gray-400 mb-2">{naam}</p>
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
                 {weken.map((l, i) => (
                   <div
                     key={l.id}
@@ -68,7 +69,7 @@ export default function LogboekenPage() {
                       <div>
                         <p className="text-sm font-semibold text-gray-900">Week {l.week_nummer}</p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {formatDatum(l.datum_van)} – {formatDatum(l.datum_tot)}
+                          {fmt(l.datum_van)} – {fmt(l.datum_tot)}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -77,16 +78,18 @@ export default function LogboekenPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`text-xs font-medium ${
-                        l.status === 'goedgekeurd' ? 'text-[#3B6D11]' :
-                        l.status === 'ingediend' ? 'text-[#854F0B]' :
-                        'text-gray-400'
+                      <span className={`text-xs font-medium px-2 py-1 rounded-full border ${
+                        l.status === 'goedgekeurd' ? 'bg-green-50 text-green-700 border-green-200' :
+                        l.status === 'ingediend' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                        l.status === 'afgekeurd' ? 'bg-red-50 text-red-700 border-red-200' :
+                        'bg-gray-50 text-gray-400 border-gray-200'
                       }`}>
                         {l.status === 'goedgekeurd' ? 'Goedgekeurd' :
                          l.status === 'ingediend' ? 'Wacht op goedkeuring' :
+                         l.status === 'afgekeurd' ? 'Afgekeurd' :
                          l.status}
                       </span>
-                      <span className="text-black text-[10px]">▸</span>
+                      <span className="text-gray-400 text-xs">▸</span>
                     </div>
                   </div>
                 ))}
