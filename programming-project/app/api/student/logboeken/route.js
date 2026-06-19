@@ -106,17 +106,32 @@ export async function POST(request) {
         [logboek_week_id, dag.datum]
       )
 
+      let dag_id
+
       if (bestaandeDag.length > 0) {
+        dag_id = bestaandeDag[0].id
         await db.query(
           `UPDATE logboek_dag SET uren=?, uitgevoerde_taken=?, reflectie=?, leerpunten=? WHERE id=?`,
-          [dag.uren, dag.taken, dag.reflectie, dag.leerpunten, bestaandeDag[0].id]
+          [dag.uren, dag.taken, dag.reflectie, dag.leerpunten, dag_id]
         )
       } else {
-        await db.query(
+        const [dagResult] = await db.query(
           `INSERT INTO logboek_dag (logboek_week_id, datum, uren, uitgevoerde_taken, reflectie, leerpunten, status)
            VALUES (?, ?, ?, ?, ?, ?, 'concept')`,
           [logboek_week_id, dag.datum, dag.uren, dag.taken, dag.reflectie, dag.leerpunten]
         )
+        dag_id = dagResult.insertId
+      }
+
+      // competenties opslaan
+      await db.query('DELETE FROM logboek_dag_competentie WHERE logboek_dag_id = ?', [dag_id])
+      if (dag.competenties && dag.competenties.length > 0) {
+        for (const competentie_id of dag.competenties) {
+          await db.query(
+            'INSERT INTO logboek_dag_competentie (logboek_dag_id, competentie_id) VALUES (?, ?)',
+            [dag_id, competentie_id]
+          )
+        }
       }
     }
 
