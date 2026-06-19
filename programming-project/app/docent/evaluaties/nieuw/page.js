@@ -17,7 +17,6 @@ export default function NieuweEvaluatiePage() {
     stage_id: '',
     datum: '',
     type: 'tussentijds',
-    week_nummer: '',
     feedback: '',
     scores: {},
   })
@@ -29,7 +28,6 @@ export default function NieuweEvaluatiePage() {
     ]).then(([studentenData, competentieData]) => {
       setStudenten(studentenData ?? [])
       setCompetenties(competentieData ?? [])
-      // initialiseer scores
       const initScores = {}
       competentieData?.forEach(c => { initScores[c.id] = '' })
       setForm(prev => ({ ...prev, scores: initScores }))
@@ -54,7 +52,6 @@ export default function NieuweEvaluatiePage() {
         stage_id: parseInt(form.stage_id),
         type: form.type,
         datum: form.datum,
-        week_nummer: parseInt(form.week_nummer) || null,
         feedback: form.feedback,
       })
     })
@@ -68,7 +65,6 @@ export default function NieuweEvaluatiePage() {
       return
     }
 
-    // scores opslaan via PUT
     const evaluatie_id = data.id
     const scoresArray = competenties.map(c => ({
       competentie_id: c.id,
@@ -131,28 +127,18 @@ export default function NieuweEvaluatiePage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Datum *</label>
+                <label className="block text-xs text-gray-500 mb-1">Deadline *</label>
                 <input
                   type="date"
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
                   value={form.datum}
                   onChange={e => setForm({...form, datum: e.target.value})}
                 />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Week nummer</label>
-                <input
-                  type="number"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
-                  placeholder="bv. 7"
-                  value={form.week_nummer}
-                  onChange={e => setForm({...form, week_nummer: e.target.value})}
-                />
+                <p className="text-xs text-gray-400 mt-1">Na deze datum kan de evaluatie niet meer worden aangepast.</p>
               </div>
             </div>
           </div>
 
-          {/* Scores per competentie */}
           <div className="bg-white rounded-xl p-5">
             <h2 className="text-sm font-semibold text-gray-800 mb-1">Score per competentie</h2>
             <p className="text-xs text-gray-400 mb-4">Geef een score van 0 tot 10 per competentie.</p>
@@ -190,7 +176,6 @@ export default function NieuweEvaluatiePage() {
             </table>
           </div>
 
-          {/* Algemene feedback */}
           <div className="bg-white rounded-xl p-5">
             <h2 className="text-sm font-semibold text-gray-800 mb-1">Algemene feedback</h2>
             <p className="text-xs text-gray-400 mb-3">Jouw algemene feedback voor de student.</p>

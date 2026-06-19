@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Topbar from '../component/topbar'
+import DocentTopbar from '../component/topbar'
 import { fetchMetAuth } from '@/app/lib/fetchMetAuth'
 
-export default function StagementorEvaluaties() {
+export default function DocentEvaluaties() {
   const router = useRouter()
   const [evaluaties, setEvaluaties] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchMetAuth('/api/stagementor/evaluaties')
-      .then(r => r?.json())
+    fetchMetAuth('/api/docent/evaluaties')
+      .then(res => res?.json())
       .then(data => {
         setEvaluaties(data ?? [])
         setLoading(false)
@@ -40,11 +40,18 @@ export default function StagementorEvaluaties() {
 
   return (
     <div className="flex-1 flex flex-col">
-      <Topbar titel="Evaluaties" subtitel="2025-2026 · Erasmushogeschool Brussel" />
+      <DocentTopbar titel="Evaluaties" subtitel="2025-2026 · Erasmushogeschool Brussel" />
       <div className="flex-1 bg-gray-100 p-6 space-y-4">
         <div className="bg-white rounded-xl p-5">
-          <h2 className="text-xl font-bold text-gray-900 mb-1">Evaluaties</h2>
-          <p className="text-sm text-gray-400">Beoordeel de competenties van je stagiair(s)</p>
+          <div className="flex items-center justify-between mb-1">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Evaluaties</h2>
+              <p className="text-sm text-gray-400">Overzicht van alle evaluaties</p>
+            </div>
+            <button onClick={() => router.push('/docent/evaluaties/nieuw')} className="px-4 py-2 bg-[#1e3a5f] text-white text-sm rounded-lg cursor-pointer font-medium">
+              Nieuwe evaluatie
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl p-5">
@@ -70,7 +77,7 @@ export default function StagementorEvaluaties() {
                     <td className="py-3">{statusBadge(e.status)}</td>
                     <td className="py-3">
                       <button
-                        onClick={() => router.push(`/stagementor/evaluaties/${e.id}`)}
+                        onClick={() => router.push(`/docent/evaluaties/${e.id}`)}
                         className="px-3 py-1.5 bg-[#1e3a5f] text-white text-xs rounded-lg cursor-pointer"
                       >
                         {e.status === 'open' ? 'Invullen' : 'Bekijken'}
