@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function FirstTimePage() {
+function FirstTimeForm() {
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [nieuwWachtwoord, setNieuwWachtwoord] = useState('')
@@ -73,7 +73,6 @@ export default function FirstTimePage() {
         maxWidth: '420px',
         boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
       }}>
-
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
           <svg width="36" height="36" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
             <rect width="120" height="120" rx="20" fill="#1a2340"/>
@@ -91,84 +90,47 @@ export default function FirstTimePage() {
         </p>
 
         <form onSubmit={handleBevestigen}>
-
           <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-              E-mailadres
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>E-mailadres</label>
             <input
               type="email"
               placeholder="uw@email.be"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.65rem 0.9rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '0.95rem',
-                boxSizing: 'border-box'
-              }}
+              style={{ width: '100%', padding: '0.65rem 0.9rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.95rem', boxSizing: 'border-box' }}
             />
           </div>
 
           <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-              Ontvangen code
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Ontvangen code</label>
             <input
               type="text"
               placeholder="Code uit uw uitnodigingsmail"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.65rem 0.9rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '0.95rem',
-                boxSizing: 'border-box'
-              }}
+              style={{ width: '100%', padding: '0.65rem 0.9rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.95rem', boxSizing: 'border-box' }}
             />
           </div>
 
           <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-              Nieuw wachtwoord
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Nieuw wachtwoord</label>
             <input
               type="password"
               placeholder="Kies een wachtwoord"
               value={nieuwWachtwoord}
               onChange={(e) => setNieuwWachtwoord(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.65rem 0.9rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '0.95rem',
-                boxSizing: 'border-box'
-              }}
+              style={{ width: '100%', padding: '0.65rem 0.9rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.95rem', boxSizing: 'border-box' }}
             />
           </div>
 
           <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>
-              Bevestig wachtwoord
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem' }}>Bevestig wachtwoord</label>
             <input
               type="password"
               placeholder="Herhaal uw wachtwoord"
               value={bevestigWachtwoord}
               onChange={(e) => setBevestigWachtwoord(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.65rem 0.9rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '0.95rem',
-                boxSizing: 'border-box'
-              }}
+              style={{ width: '100%', padding: '0.65rem 0.9rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.95rem', boxSizing: 'border-box' }}
             />
           </div>
 
@@ -196,9 +158,16 @@ export default function FirstTimePage() {
           >
             {bezig ? 'Bezig...' : 'Bevestigen →'}
           </button>
-
         </form>
       </div>
     </div>
+  )
+}
+
+export default function FirstTimePage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Laden...</div>}>
+      <FirstTimeForm />
+    </Suspense>
   )
 }
