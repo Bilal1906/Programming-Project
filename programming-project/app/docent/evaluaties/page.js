@@ -72,7 +72,7 @@ export default function DocentEvaluaties() {
                 {evaluaties.map(e => (
                   <tr key={e.id} className="border-b border-gray-50">
                     <td className="text-sm text-gray-800 py-3">{e.student_voornaam} {e.student_achternaam}</td>
-                    <td className="text-sm text-gray-600 py-3">{e.datum ? new Date(e.datum + 'T12:00:00').toLocaleDateString('nl-BE') : '—'}</td>
+                    <td className="text-sm text-gray-600 py-3">{e.datum ? new Date(e.datum).toLocaleDateString('nl-BE') : '—'}</td>
                     <td className="text-sm text-gray-600 py-3 capitalize">{e.type}</td>
                     <td className="py-3">{statusBadge(e.status)}</td>
                     <td className="py-3">
