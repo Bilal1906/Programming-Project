@@ -16,7 +16,6 @@ async function getBrowser() {
 
 export async function GET(request, { params }) {
   try {
-    // Token uit header of cookie
     let token = null
     const authHeader = request.headers.get('authorization')
     if (authHeader?.startsWith('Bearer ')) {
@@ -122,7 +121,7 @@ export async function GET(request, { params }) {
 <head>
   <meta charset="UTF-8"/>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size:13px; color:#111; background:#fff; padding:40px; }
     .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px; padding-bottom:20px; border-bottom:2px solid #1A2E4A; }
     .logo-text { font-size:20px; font-weight:700; color:#1A2E4A; }
@@ -135,7 +134,7 @@ export async function GET(request, { params }) {
     .field label { font-size:10px; color:#9CA3AF; display:block; margin-bottom:2px; text-transform:uppercase; letter-spacing:0.05em; }
     .field p { font-size:13px; color:#111; font-weight:500; }
     .algemene-feedback { background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:12px; font-size:13px; line-height:1.6; color:#0C4A6E; margin-top:8px; }
-    .competentie-blok { border:1px solid #E5E7EB; border-radius:8px; padding:16px; margin-bottom:12px; page-break-inside:avoid; }
+    .competentie-blok { border:1px solid #E5E7EB; border-radius:8px; padding:16px; margin-bottom:12px; break-inside:avoid; page-break-inside:avoid; }
     .comp-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
     .comp-naam { font-size:13px; font-weight:700; color:#1A2E4A; flex:1; margin-right:12px; }
     .comp-omschrijving { font-size:11px; color:#6B7280; margin-bottom:10px; line-height:1.5; }
@@ -153,6 +152,9 @@ export async function GET(request, { params }) {
     .mentor-feedback .feedback-label { color:#9A3412; }
     .mentor-feedback .feedback-tekst { color:#7C2D12; }
     .footer { margin-top:40px; padding-top:16px; border-top:1px solid #E5E7EB; font-size:10px; color:#9CA3AF; display:flex; justify-content:space-between; }
+    @media print {
+      .competentie-blok { break-inside:avoid; page-break-inside:avoid; }
+    }
   </style>
 </head>
 <body>
@@ -207,7 +209,8 @@ export async function GET(request, { params }) {
     const pdf = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: '0', right: '0', bottom: '0', left: '0' }
+      preferCSSPageSize: false,
+      margin: { top: '20px', right: '0', bottom: '20px', left: '0' }
     })
     await page.close()
 
