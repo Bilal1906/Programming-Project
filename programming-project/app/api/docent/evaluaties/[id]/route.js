@@ -21,6 +21,7 @@ export async function GET(request, { params }) {
     const [evalRijen] = await db.query(`
       SELECT e.id, e.type, e.status, e.datum, e.week_nummer,
              e.algemene_feedback_docent,
+             e.presentatie_datum, e.presentatie_notities, e.presentatie_score,
              u.voornaam as student_voornaam, u.achternaam as student_achternaam,
              b.naam as bedrijf_naam
       FROM evaluatie e
@@ -37,6 +38,7 @@ export async function GET(request, { params }) {
     const evaluatie = {
       ...evalRijen[0],
       datum: toDateStr(evalRijen[0].datum),
+      presentatie_datum: toDateStr(evalRijen[0].presentatie_datum),
     }
 
     const [scoreRijen] = await db.query(`
