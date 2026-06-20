@@ -10,77 +10,95 @@ export default function Evaluaties() {
   const [evaluaties, setEvaluaties] = useState([])
   const [loading, setLoading] = useState(true)
   const [actieveTab, setActieveTab] = useState('tussentijds')
+  const [stage, setStage] = useState(null)
 
   useEffect(() => {
-    fetchMetAuth('/api/student/evaluaties')
-      .then(res => res?.json())
-      .then(data => {
-        setEvaluaties(data ?? [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+    Promise.all([
+      fetchMetAuth('/api/student/evaluaties').then(r => r?.json()),
+      fetchMetAuth('/api/student/stage').then(r => r?.json()),
+    ]).then(([evalData, stageData]) => {
+      setEvaluaties(evalData ?? [])
+      const actief = stageData?.find(s => s.status === 'actief')
+      if (actief) setStage(actief)
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [])
 
-  const tussentijdseEvaluaties = evaluaties.filter(e => e.type === 'tussentijds')
-  const finaleEvaluaties = evaluaties.filter(e => e.type === 'finaal')
+  const tussentijdse = evaluaties.filter(e => e.type === 'tussentijds')
+  const finale = evaluaties.filter(e => e.type === 'finaal')
+
+  const statusBadge = (status) => {
+    const map = {
+      open: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+      ingevuld: 'bg-blue-50 text-blue-700 border-blue-200',
+      mentor_beoordeelt: 'bg-orange-50 text-orange-700 border-orange-200',
+      voltooid: 'bg-green-50 text-green-700 border-green-200',
+    }
+    const labels = {
+      open: 'Open',
+      ingevuld: 'Ingevuld',
+      mentor_beoordeelt: 'Mentor beoordeelt',
+      voltooid: 'Voltooid',
+    }
+    return <span className={`text-xs px-2 py-1 rounded-full font-medium border ${map[status] || map.open}`}>{labels[status] || status}</span>
+  }
 
   if (loading) return <div className="flex-1 flex items-center justify-center bg-gray-100"><div className="text-sm text-gray-400">Laden...</div></div>
 
+  const renderLijst = (lijst) => {
+    if (lijst.length === 0) return (
+      <div className="bg-white rounded-xl p-8 text-center">
+        <p className="text-sm text-gray-400">Geen evaluatie gevonden.</p>
+      </div>
+    )
+
+    return lijst.map(e => (
+      <div key={e.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+        <div className="flex items-center justify-between px-5 py-4">
+          <div>
+            <p className="text-sm font-semibold text-gray-900 capitalize">{e.type} evaluatie</p>
+            <p className="text-xs text-gray-400 mt-0.5">{e.datum ? new Date(e.datum + 'T12:00:00').toLocaleDateString('nl-BE') : '—'}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {statusBadge(e.status)}
+            <button
+              onClick={() => router.push(`/student/evaluaties/${e.id}`)}
+              className="px-3 py-1.5 bg-[#1e3a5f] text-white text-xs rounded-lg cursor-pointer"
+            >
+              {e.status === 'open' ? 'Invullen' : 'Bekijken'}
+            </button>
+          </div>
+        </div>
+        {e.algemene_feedback_docent && (
+          <div className="px-5 pb-4">
+            <p className="text-xs text-gray-400 mb-1">Feedback docent</p>
+            <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">{e.algemene_feedback_docent}</p>
+          </div>
+        )}
+      </div>
+    ))
+  }
+
   return (
     <div className="flex-1 flex flex-col">
-      <Topbar titel="Evaluaties" subtitel="Proximus NV" />
+      <Topbar titel="Evaluaties" subtitel={stage?.bedrijf_naam ?? 'Stage'} />
       <div className="flex-1 bg-gray-100 p-6">
         <div className="flex gap-4 mb-6 border-b border-gray-200">
-          {[{ id: 'tussentijds', label: 'Tussentijds' }, { id: 'finaal', label: 'Finaal' }].map((tab) => (
-            <button key={tab.id} onClick={() => setActieveTab(tab.id)} className={`pb-3 text-sm font-medium border-b-2 cursor-pointer ${actieveTab === tab.id ? 'border-[#1e3a5f] text-[#1e3a5f]' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
+          {[{ id: 'tussentijds', label: 'Tussentijds' }, { id: 'finaal', label: 'Finaal' }].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActieveTab(tab.id)}
+              className={`pb-3 text-sm font-medium border-b-2 cursor-pointer ${
+                actieveTab === tab.id ? 'border-[#1e3a5f] text-[#1e3a5f]' : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
+            >
               {tab.label}
             </button>
           ))}
         </div>
 
-        {actieveTab === 'tussentijds' && (
-          tussentijdseEvaluaties.length === 0 ? (
-            <div className="bg-white rounded-xl p-8 text-center"><p className="text-sm text-gray-400">Geen tussentijdse evaluatie gevonden.</p></div>
-          ) : (
-            tussentijdseEvaluaties.map((e) => (
-              <div key={e.id} className="bg-white rounded-xl p-5 mb-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h2 className="text-sm font-semibold text-gray-800">Tussentijdse evaluatie — Week {e.week_nummer}</h2>
-                    <p className="text-xs text-gray-400">{e.datum ? new Date(e.datum).toLocaleDateString('nl-BE') : '-'}</p>
-                  </div>
-                  <span className={`text-xs px-3 py-1 rounded-full font-medium ${e.status === 'voltooid' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'}`}>{e.status}</span>
-                </div>
-                {e.algemene_feedback_docent && (
-                  <div className="mb-4">
-                    <h3 className="text-xs font-semibold text-gray-600 mb-2">Feedback docent</h3>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-600">{e.algemene_feedback_docent}</div>
-                  </div>
-                )}
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-600 mb-2">Zelfreflectie</h3>
-                  <textarea className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 h-24 resize-none" placeholder="schrijf hier..." defaultValue={e.algemene_zelfreflectie_student} />
-                </div>
-              </div>
-            ))
-          )
-        )}
-
-        {actieveTab === 'finaal' && (
-          finaleEvaluaties.length === 0 ? (
-            <div className="bg-white rounded-xl p-8 text-center"><p className="text-sm text-gray-400">Geen finale evaluatie gevonden.</p></div>
-          ) : (
-            finaleEvaluaties.map((e) => (
-              <div key={e.id} className="bg-white rounded-xl p-5 mb-4">
-                <h2 className="text-sm font-semibold text-gray-800 mb-4">Finale evaluatie — Week {e.week_nummer}</h2>
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-600 mb-2">Zelfreflectie</h3>
-                  <textarea className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 h-24 resize-none" placeholder="schrijf hier..." defaultValue={e.algemene_zelfreflectie_student} />
-                </div>
-              </div>
-            ))
-          )
-        )}
+        {actieveTab === 'tussentijds' && renderLijst(tussentijdse)}
+        {actieveTab === 'finaal' && renderLijst(finale)}
       </div>
     </div>
   )
