@@ -1,77 +1,107 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import DocentTopbar from '../../component/topbar'
-import { fetchMetAuth } from '@/app/lib/fetchMetAuth'
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import DocentTopbar from "../../component/topbar";
+import { fetchMetAuth } from "@/app/lib/fetchMetAuth";
 
 export default function DocentEvaluatieDetail() {
-  const router = useRouter()
-  const { id } = useParams()
-  const [evaluatie, setEvaluatie] = useState(null)
-  const [scores, setScores] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [bezig, setBezig] = useState(false)
-  const [fout, setFout] = useState('')
-  const [feedback, setFeedback] = useState('')
+  const router = useRouter();
+  const { id } = useParams();
+  const [evaluatie, setEvaluatie] = useState(null);
+  const [scores, setScores] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [bezig, setBezig] = useState(false);
+  const [fout, setFout] = useState("");
+  const [feedback, setFeedback] = useState("");
 
   useEffect(() => {
     fetchMetAuth(`/api/docent/evaluaties/${id}`)
-      .then(r => r?.json())
-      .then(data => {
+      .then((r) => r?.json())
+      .then((data) => {
         if (data && !data.fout) {
-          setEvaluatie(data.evaluatie)
-          setScores(data.scores)
-          setFeedback(data.evaluatie.algemene_feedback_docent || '')
+          setEvaluatie(data.evaluatie);
+          setScores(data.scores);
+          setFeedback(data.evaluatie.algemene_feedback_docent || "");
         }
-        setLoading(false)
+        setLoading(false);
       })
-      .catch(() => setLoading(false))
-  }, [id])
+      .catch(() => setLoading(false));
+  }, [id]);
+
+  const selecteerScore = (competentie_id, score) => {
+    setScores((prev) =>
+      prev.map((s) =>
+        s.competentie_id === competentie_id ? { ...s, score_docent: score } : s,
+      ),
+    );
+  };
 
   const handleOpslaan = async () => {
-    setFout('')
-    setBezig(true)
+    setFout("");
+    setBezig(true);
 
-    const response = await fetchMetAuth('/api/docent/evaluaties', {
-      method: 'PUT',
+    const response = await fetchMetAuth("/api/docent/evaluaties", {
+      method: "PUT",
       body: JSON.stringify({
         evaluatie_id: parseInt(id),
         algemene_feedback: feedback,
-        scores: scores.map(s => ({
+        scores: scores.map((s) => ({
           competentie_id: s.competentie_id,
-          score_docent: s.score_docent !== '' && s.score_docent !== null ? parseFloat(s.score_docent) : null,
-        }))
-      })
-    })
+          score_docent:
+            s.score_docent !== "" && s.score_docent !== null
+              ? parseFloat(s.score_docent)
+              : null,
+        })),
+      }),
+    });
 
-    if (!response) { setBezig(false); return }
-    const data = await response.json()
-    if (response.ok) {
-      alert('Opgeslagen!')
-      router.push('/docent/evaluaties')
-    } else {
-      setFout(data.fout || 'Er ging iets mis')
-      setBezig(false)
+    if (!response) {
+      setBezig(false);
+      return;
     }
-  }
+    const data = await response.json();
+    if (response.ok) {
+      alert("Opgeslagen!");
+      router.push("/docent/evaluaties");
+    } else {
+      setFout(data.fout || "Er ging iets mis");
+      setBezig(false);
+    }
+  };
 
-  if (loading) return <div className="flex-1 flex items-center justify-center bg-gray-100"><div className="text-sm text-gray-400">Laden...</div></div>
-  if (!evaluatie) return <div className="flex-1 flex items-center justify-center bg-gray-100"><div className="text-sm text-gray-400">Evaluatie niet gevonden.</div></div>
+  const isVerlopen =
+    evaluatie?.datum &&
+    new Date() >
+      new Date(new Date(evaluatie.datum).toDateString() + " 23:59:59");
+  if (loading)
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-100">
+        <div className="text-sm text-gray-400">Laden...</div>
+      </div>
+    );
+  if (!evaluatie)
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-100">
+        <div className="text-sm text-gray-400">Evaluatie niet gevonden.</div>
+      </div>
+    );
 
   return (
     <div className="flex-1 flex flex-col">
       <DocentTopbar
         titel={`Evaluatie — ${evaluatie.type}`}
-        subtitel={`${evaluatie.student_voornaam} ${evaluatie.student_achternaam} · ${evaluatie.datum ? new Date(evaluatie.datum + 'T12:00:00').toLocaleDateString('nl-BE') : ''}`}
+        subtitel={`${evaluatie.student_voornaam} ${evaluatie.student_achternaam} · ${evaluatie.datum ? new Date(evaluatie.datum + "T12:00:00").toLocaleDateString("nl-BE") : ""}`}
       />
       <div className="flex-1 bg-gray-100 p-6 space-y-4 overflow-y-auto">
-
+        {/* Info */}
         <div className="bg-white rounded-xl p-5">
           <div className="grid grid-cols-4 gap-4">
             <div>
               <p className="text-xs text-gray-400 mb-1">Student</p>
-              <p className="text-sm font-medium">{evaluatie.student_voornaam} {evaluatie.student_achternaam}</p>
+              <p className="text-sm font-medium">
+                {evaluatie.student_voornaam} {evaluatie.student_achternaam}
+              </p>
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-1">Bedrijf</p>
@@ -82,84 +112,165 @@ export default function DocentEvaluatieDetail() {
               <p className="text-sm font-medium capitalize">{evaluatie.type}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-1">Status</p>
-              <p className="text-sm font-medium">{evaluatie.status}</p>
+              <p className="text-xs text-gray-400 mb-1">Deadline</p>
+              <p
+                className={`text-sm font-medium ${isVerlopen ? "text-red-500" : "text-gray-800"}`}
+              >
+                {evaluatie.datum
+                  ? new Date(evaluatie.datum).toLocaleDateString("nl-BE")
+                  : "—"}
+                {isVerlopen && " (verlopen)"}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-gray-800 mb-1">Score per competentie</h2>
-          <p className="text-xs text-gray-400 mb-4">Geef een score van 0 tot 10.</p>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left text-xs font-semibold text-gray-600 pb-3">Competentie</th>
-                <th className="text-center text-xs font-semibold text-gray-600 pb-3 w-32">Jouw score</th>
-                <th className="text-center text-xs font-semibold text-gray-600 pb-3 w-32">Mentor score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {scores.map((s, i) => (
-                <tr key={s.competentie_id} className="border-b border-gray-50">
-                  <td className="text-sm text-gray-700 py-3 pr-4">{s.competentie_naam}</td>
-                  <td className="py-3 w-32">
-                    <input
-                      type="number"
-                      min="0"
-                      max="10"
-                      step="0.5"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400 text-center"
-                      placeholder="0-10"
-                      value={s.score_docent ?? ''}
-                      onChange={e => {
-                        const nieuw = [...scores]
-                        nieuw[i] = { ...nieuw[i], score_docent: e.target.value }
-                        setScores(nieuw)
-                      }}
-                    />
-                  </td>
-                  <td className="py-3 w-32 text-center text-sm text-gray-500">
-                    {s.score_mentor ?? '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {isVerlopen && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-600">
+            De deadline is verstreken. Je kan deze evaluatie niet meer
+            aanpassen.
+          </div>
+        )}
+
+        {/* Scores per competentie met rubriek */}
+        <div className="space-y-4">
+          {scores.map((s) => (
+            <div key={s.competentie_id} className="bg-white rounded-xl p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {s.competentie_naam}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {s.omschrijving}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">Mentor score:</span>
+                  <span className="text-xs font-semibold text-gray-600">
+                    {s.score_mentor ?? "—"}
+                  </span>
+                </div>
+              </div>
+
+              {s.rubriek.length > 0 ? (
+                <div
+                  className="grid gap-2"
+                  style={{
+                    gridTemplateColumns: `repeat(${s.rubriek.length}, 1fr)`,
+                  }}
+                >
+                  {s.rubriek.map((niveau) => {
+                    const geselecteerd =
+                      parseFloat(s.score_docent) === parseFloat(niveau.score);
+                    return (
+                      <button
+                        key={niveau.id}
+                        type="button"
+                        disabled={isVerlopen}
+                        onClick={() =>
+                          selecteerScore(s.competentie_id, niveau.score)
+                        }
+                        className={`text-left p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                          geselecteerd
+                            ? "border-[#1e3a5f] bg-[#1e3a5f] text-white"
+                            : "border-gray-200 bg-gray-50 text-gray-700 hover:border-[#1e3a5f] hover:bg-blue-50"
+                        } ${isVerlopen ? "cursor-not-allowed opacity-60" : ""}`}
+                      >
+                        <div
+                          className={`text-sm font-bold mb-1 ${geselecteerd ? "text-white" : "text-[#1e3a5f]"}`}
+                        >
+                          {niveau.score}/{niveau.score_max}
+                        </div>
+                        <div
+                          className={`text-xs leading-relaxed ${geselecteerd ? "text-blue-100" : "text-gray-500"}`}
+                        >
+                          {niveau.beschrijving}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <p className="text-xs text-gray-400">
+                    Geen rubriek beschikbaar — geef een score:
+                  </p>
+                  <input
+                    type="number"
+                    min="0"
+                    max="10"
+                    step="0.5"
+                    disabled={isVerlopen}
+                    className="w-24 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400 text-center"
+                    placeholder="0-10"
+                    value={s.score_docent ?? ""}
+                    onChange={(e) =>
+                      selecteerScore(s.competentie_id, e.target.value)
+                    }
+                  />
+                </div>
+              )}
+
+              {s.score_docent !== null && s.score_docent !== "" && (
+                <div className="mt-2 text-xs text-gray-500">
+                  Geselecteerde score:{" "}
+                  <span className="font-semibold text-[#1e3a5f]">
+                    {s.score_docent}
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
+        {/* Algemene feedback */}
         <div className="bg-white rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-gray-800 mb-1">Algemene feedback</h2>
-          <p className="text-xs text-gray-400 mb-3">Jouw algemene feedback voor de student.</p>
+          <h2 className="text-sm font-semibold text-gray-800 mb-1">
+            Algemene feedback
+          </h2>
+          <p className="text-xs text-gray-400 mb-3">
+            Jouw algemene feedback voor de student.
+          </p>
           <textarea
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 h-32 resize-none"
+            disabled={isVerlopen}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 h-32 resize-none disabled:bg-gray-50 disabled:text-gray-400"
             placeholder="Algemene feedback..."
             value={feedback}
-            onChange={e => setFeedback(e.target.value)}
+            onChange={(e) => setFeedback(e.target.value)}
           />
         </div>
 
         {fout && (
-          <div className="bg-red-50 text-red-600 border border-red-200 rounded-lg p-3 text-sm">{fout}</div>
+          <div className="bg-red-50 text-red-600 border border-red-200 rounded-lg p-3 text-sm">
+            {fout}
+          </div>
         )}
 
         <div className="flex gap-3 pb-6">
           <button
-            onClick={() => router.push('/docent/evaluaties')}
+            onClick={() => router.push("/docent/evaluaties")}
             className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
           >
             Annuleren
           </button>
           <button
             onClick={handleOpslaan}
-            disabled={bezig}
-            className="px-5 py-2 text-sm bg-[#1e3a5f] text-white rounded-lg hover:bg-[#162d4a] cursor-pointer font-medium disabled:opacity-50"
+            disabled={bezig || isVerlopen}
+            className={`px-5 py-2 text-sm rounded-lg font-medium ${
+              isVerlopen
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-[#1e3a5f] text-white cursor-pointer hover:bg-[#162d4a]"
+            } disabled:opacity-50`}
           >
-            {bezig ? 'Bezig...' : 'Opslaan'}
+            {isVerlopen
+              ? "Deadline verstreken"
+              : bezig
+                ? "Bezig..."
+                : "Opslaan"}
           </button>
         </div>
-
       </div>
     </div>
-  )
+  );
 }

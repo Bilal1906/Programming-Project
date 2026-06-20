@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
 import { verifyToken, checkRol } from '@/app/lib/auth'
 
+function toDateStr(val) {
+  if (!val) return null
+  const d = new Date(val)
+  d.setHours(12, 0, 0, 0)
+  return d.toISOString().split('T')[0]
+}
+
 export async function GET(request, { params }) {
   try {
     const auth = verifyToken(request)
@@ -27,16 +34,43 @@ export async function GET(request, { params }) {
 
     if (evalRijen.length === 0) return NextResponse.json({ fout: 'Evaluatie niet gevonden' }, { status: 404 })
 
+    const evaluatie = {
+      ...evalRijen[0],
+      datum: toDateStr(evalRijen[0].datum),
+    }
+
     const [scoreRijen] = await db.query(`
       SELECT es.competentie_id, es.score_docent, es.score_mentor,
-             c.naam as competentie_naam, c.gewicht
+             c.naam as competentie_naam, c.gewicht, c.omschrijving
       FROM evaluatie_score es
       JOIN competentie c ON es.competentie_id = c.id
       WHERE es.evaluatie_id = ?
       ORDER BY c.id ASC
     `, [id])
 
-    return NextResponse.json({ evaluatie: evalRijen[0], scores: scoreRijen })
+    const competentieIds = scoreRijen.map(s => s.competentie_id)
+    let rubriekPerCompetentie = {}
+
+    if (competentieIds.length > 0) {
+      const [rubriekRijen] = await db.query(`
+        SELECT id, competentie_id, score, score_max, beschrijving
+        FROM rubriek_niveau
+        WHERE competentie_id IN (?) AND rol = 'docent'
+        ORDER BY competentie_id ASC, score ASC
+      `, [competentieIds])
+
+      for (const r of rubriekRijen) {
+        if (!rubriekPerCompetentie[r.competentie_id]) rubriekPerCompetentie[r.competentie_id] = []
+        rubriekPerCompetentie[r.competentie_id].push(r)
+      }
+    }
+
+    const scoresMetRubriek = scoreRijen.map(s => ({
+      ...s,
+      rubriek: rubriekPerCompetentie[s.competentie_id] || []
+    }))
+
+    return NextResponse.json({ evaluatie, scores: scoresMetRubriek })
   } catch (error) {
     return NextResponse.json({ fout: error.message }, { status: 500 })
   }
