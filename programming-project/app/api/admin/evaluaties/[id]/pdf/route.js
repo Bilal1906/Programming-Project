@@ -1,0 +1,224 @@
+import { NextResponse } from 'next/server'
+import db from '@/app/lib/db'
+import jwt from 'jsonwebtoken'
+import puppeteer from 'puppeteer'
+
+let browserInstance = null
+
+async function getBrowser() {
+  if (!browserInstance) {
+    browserInstance = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    })
+  }
+  return browserInstance
+}
+
+export async function GET(request, { params }) {
+  try {
+    // Token uit header of cookie
+    let token = null
+    const authHeader = request.headers.get('authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1]
+    } else {
+      const cookieHeader = request.headers.get('cookie') || ''
+      const match = cookieHeader.match(/token=([^;]+)/)
+      if (match) token = match[1]
+    }
+
+    if (!token) return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET)
+    if (payload.rol !== 'admin') return NextResponse.json({ fout: 'Geen toegang' }, { status: 403 })
+
+    const { id } = await params
+
+    const [evalRijen] = await db.query(`
+      SELECT e.id, e.type, e.status, e.datum,
+             e.algemene_feedback_docent,
+             u.voornaam as student_voornaam, u.achternaam as student_achternaam,
+             u.email as student_email,
+             st.opleiding, st.academiejaar,
+             b.naam as bedrijf_naam,
+             mu.voornaam as mentor_voornaam, mu.achternaam as mentor_achternaam,
+             du.voornaam as docent_voornaam, du.achternaam as docent_achternaam
+      FROM evaluatie e
+      JOIN stage s ON e.stage_id = s.id
+      JOIN student st ON s.student_id = st.id
+      JOIN user u ON st.user_id = u.id
+      JOIN stagementor sm ON s.stagementor_id = sm.id
+      JOIN user mu ON sm.user_id = mu.id
+      JOIN bedrijf b ON sm.bedrijf_id = b.id
+      LEFT JOIN docent d ON s.docent_id = d.id
+      LEFT JOIN user du ON d.user_id = du.id
+      WHERE e.id = ?
+    `, [id])
+
+    if (evalRijen.length === 0) return NextResponse.json({ fout: 'Evaluatie niet gevonden' }, { status: 404 })
+
+    const evaluatie = evalRijen[0]
+
+    const [scoreRijen] = await db.query(`
+      SELECT es.competentie_id, es.score_mentor, es.score_docent,
+             es.feedback_mentor, es.zelfreflectie_student,
+             c.naam as competentie_naam, c.omschrijving, c.gewicht
+      FROM evaluatie_score es
+      JOIN competentie c ON es.competentie_id = c.id
+      WHERE es.evaluatie_id = ?
+      ORDER BY c.id ASC
+    `, [id])
+
+    const competentieIds = scoreRijen.map(s => s.competentie_id)
+    let scoreMaxDocent = {}
+    let scoreMaxMentor = {}
+
+    if (competentieIds.length > 0) {
+      const [maxDocent] = await db.query(`
+        SELECT competentie_id, MAX(score_max) as score_max
+        FROM rubriek_niveau WHERE competentie_id IN (?) AND rol = 'docent'
+        GROUP BY competentie_id
+      `, [competentieIds])
+      for (const r of maxDocent) scoreMaxDocent[r.competentie_id] = r.score_max
+
+      const [maxMentor] = await db.query(`
+        SELECT competentie_id, MAX(score_max) as score_max
+        FROM rubriek_niveau WHERE competentie_id IN (?) AND rol = 'mentor'
+        GROUP BY competentie_id
+      `, [competentieIds])
+      for (const r of maxMentor) scoreMaxMentor[r.competentie_id] = r.score_max
+    }
+
+    const fmt = (d) => d ? new Date(d).toLocaleDateString('nl-BE') : '—'
+
+    const competentiesHtml = scoreRijen.map(s => `
+      <div class="competentie-blok">
+        <div class="comp-header">
+          <div class="comp-naam">${s.competentie_naam}</div>
+          <div class="comp-scores">
+            <span class="score-badge mentor">Mentor: ${s.score_mentor !== null && s.score_mentor !== '' ? s.score_mentor + '/' + (scoreMaxMentor[s.competentie_id] || 4) : '—'}</span>
+            <span class="score-badge docent">Docent: ${s.score_docent !== null && s.score_docent !== '' ? s.score_docent + '/' + (scoreMaxDocent[s.competentie_id] || 10) : '—'}</span>
+          </div>
+        </div>
+        <p class="comp-omschrijving">${s.omschrijving || ''}</p>
+        ${s.zelfreflectie_student ? `
+          <div class="feedback-blok zelfreflectie">
+            <div class="feedback-label">Zelfreflectie student</div>
+            <div class="feedback-tekst">${s.zelfreflectie_student}</div>
+          </div>
+        ` : ''}
+        ${s.feedback_mentor ? `
+          <div class="feedback-blok mentor-feedback">
+            <div class="feedback-label">Feedback mentor</div>
+            <div class="feedback-tekst">${s.feedback_mentor}</div>
+          </div>
+        ` : ''}
+      </div>
+    `).join('')
+
+    const html = `
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size:13px; color:#111; background:#fff; padding:40px; }
+    .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px; padding-bottom:20px; border-bottom:2px solid #1A2E4A; }
+    .logo-text { font-size:20px; font-weight:700; color:#1A2E4A; }
+    .doc-info { text-align:right; font-size:11px; color:#6B7280; }
+    h1 { font-size:22px; font-weight:700; color:#1A2E4A; margin-bottom:4px; }
+    .subtitle { font-size:12px; color:#6B7280; margin-bottom:24px; }
+    .section { margin-bottom:24px; }
+    .section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#6B7280; margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid #E5E7EB; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 24px; }
+    .field label { font-size:10px; color:#9CA3AF; display:block; margin-bottom:2px; text-transform:uppercase; letter-spacing:0.05em; }
+    .field p { font-size:13px; color:#111; font-weight:500; }
+    .algemene-feedback { background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:12px; font-size:13px; line-height:1.6; color:#0C4A6E; margin-top:8px; }
+    .competentie-blok { border:1px solid #E5E7EB; border-radius:8px; padding:16px; margin-bottom:12px; page-break-inside:avoid; }
+    .comp-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+    .comp-naam { font-size:13px; font-weight:700; color:#1A2E4A; flex:1; margin-right:12px; }
+    .comp-omschrijving { font-size:11px; color:#6B7280; margin-bottom:10px; line-height:1.5; }
+    .comp-scores { display:flex; gap:8px; flex-shrink:0; }
+    .score-badge { font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; white-space:nowrap; }
+    .score-badge.mentor { background:#DCFCE7; color:#166534; }
+    .score-badge.docent { background:#EFF6FF; color:#1D4ED8; }
+    .feedback-blok { border-radius:6px; padding:10px 12px; margin-top:8px; }
+    .feedback-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; }
+    .feedback-tekst { font-size:12px; line-height:1.6; }
+    .zelfreflectie { background:#F0FDF4; border:1px solid #BBF7D0; }
+    .zelfreflectie .feedback-label { color:#166534; }
+    .zelfreflectie .feedback-tekst { color:#14532D; }
+    .mentor-feedback { background:#FFF7ED; border:1px solid #FED7AA; }
+    .mentor-feedback .feedback-label { color:#9A3412; }
+    .mentor-feedback .feedback-tekst { color:#7C2D12; }
+    .footer { margin-top:40px; padding-top:16px; border-top:1px solid #E5E7EB; font-size:10px; color:#9CA3AF; display:flex; justify-content:space-between; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="logo-text">Competent</div>
+      <div style="font-size:11px;color:#6B7280;">Erasmushogeschool Brussel</div>
+    </div>
+    <div class="doc-info">
+      <div style="font-weight:600;font-size:12px;">Eindoverzicht Evaluatie</div>
+      <div>Gegenereerd op ${fmt(new Date())}</div>
+    </div>
+  </div>
+
+  <h1>Eindoverzicht — ${evaluatie.type === 'tussentijds' ? 'Tussentijdse' : 'Finale'} Evaluatie</h1>
+  <p class="subtitle">${evaluatie.academiejaar || '2025-2026'} · ${evaluatie.opleiding || 'Toegepaste Informatica'}</p>
+
+  <div class="section">
+    <div class="section-title">Studentgegevens</div>
+    <div class="grid">
+      <div class="field"><label>Naam</label><p>${evaluatie.student_voornaam} ${evaluatie.student_achternaam}</p></div>
+      <div class="field"><label>E-mail</label><p>${evaluatie.student_email || '—'}</p></div>
+      <div class="field"><label>Bedrijf</label><p>${evaluatie.bedrijf_naam || '—'}</p></div>
+      <div class="field"><label>Datum</label><p>${fmt(evaluatie.datum)}</p></div>
+      <div class="field"><label>Stagementor</label><p>${evaluatie.mentor_voornaam} ${evaluatie.mentor_achternaam}</p></div>
+      <div class="field"><label>Docent</label><p>${evaluatie.docent_voornaam || '—'} ${evaluatie.docent_achternaam || ''}</p></div>
+    </div>
+  </div>
+
+  ${evaluatie.algemene_feedback_docent ? `
+  <div class="section">
+    <div class="section-title">Algemene feedback docent</div>
+    <div class="algemene-feedback">${evaluatie.algemene_feedback_docent}</div>
+  </div>
+  ` : ''}
+
+  <div class="section">
+    <div class="section-title">Evaluatie per competentie</div>
+    ${competentiesHtml}
+  </div>
+
+  <div class="footer">
+    <span>Competent · Erasmushogeschool Brussel · Toegepaste Informatica</span>
+    <span>${evaluatie.student_voornaam} ${evaluatie.student_achternaam} · ${fmt(new Date())}</span>
+  </div>
+</body>
+</html>`
+
+    const browser = await getBrowser()
+    const page = await browser.newPage()
+    await page.setContent(html, { waitUntil: 'networkidle0' })
+    const pdf = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '0', right: '0', bottom: '0', left: '0' }
+    })
+    await page.close()
+
+    return new NextResponse(pdf, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="eindoverzicht-${evaluatie.student_voornaam}-${evaluatie.student_achternaam}.pdf"`,
+      },
+    })
+  } catch (error) {
+    console.error('PDF fout:', error)
+    return NextResponse.json({ fout: error.message }, { status: 500 })
+  }
+}
