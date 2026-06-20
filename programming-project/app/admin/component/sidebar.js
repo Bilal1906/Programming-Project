@@ -8,6 +8,7 @@ import {
   StickyNote,
   GraduationCap,
   BookOpen,
+  ClipboardList,
 } from "lucide-react";
 
 const navItems = [
@@ -45,6 +46,11 @@ const navItems = [
     href: "/admin/competenties",
     label: "competenties",
     icon: <BookOpen className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/evaluaties",
+    label: "evaluaties",
+    icon: <ClipboardList className="w-4 h-4" />,
   },
 ];
 
