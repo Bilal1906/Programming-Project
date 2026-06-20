@@ -28,7 +28,10 @@ export async function GET(request) {
       ORDER BY e.datum DESC
     `, [payload.id])
 
-    return NextResponse.json(rijen)
+    return NextResponse.json(rijen.map(r => ({
+      ...r,
+      datum: r.datum ? new Date(r.datum).toISOString().split('T')[0] : null,
+    })))
   } catch (error) {
     return NextResponse.json({ fout: error.message }, { status: 500 })
   }
@@ -43,17 +46,16 @@ export async function POST(request) {
 
     const payload = auth.payload
     const body = await request.json()
-    const { stage_id, type, datum, week_nummer, feedback } = body
+    const { stage_id, type, datum, feedback } = body
 
     const [evaluatieResult] = await db.query(
       `INSERT INTO evaluatie 
-        (stage_id, beoordelaar_id, type, status, algemene_feedback_docent, datum, week_nummer)
-       VALUES (?, ?, ?, 'open', ?, ?, ?)`,
-      [stage_id, payload.id, type, feedback || null, datum, week_nummer || null]
+        (stage_id, beoordelaar_id, type, status, algemene_feedback_docent, datum)
+       VALUES (?, ?, ?, 'open', ?, ?)`,
+      [stage_id, payload.id, type, feedback || null, datum]
     )
     const evaluatie_id = evaluatieResult.insertId
 
-    // lege evaluatie_score rijen voor elke competentie
     const [competenties] = await db.query('SELECT id FROM competentie ORDER BY id ASC')
     for (const c of competenties) {
       await db.query(
@@ -75,17 +77,27 @@ export async function PUT(request) {
     const rolFout = checkRol(auth.payload, ['docent'])
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
-    const payload = auth.payload
     const body = await request.json()
-    const { evaluatie_id, algemene_feedback, scores } = body
+    const { evaluatie_id, algemene_feedback, scores, presentatie_datum, presentatie_notities, presentatie_score } = body
 
-    // algemene feedback updaten
     await db.query(
-      'UPDATE evaluatie SET algemene_feedback_docent=?, status=? WHERE id=?',
-      [algemene_feedback || null, 'ingevuld', evaluatie_id]
+      `UPDATE evaluatie SET 
+        algemene_feedback_docent=?,
+        status=?,
+        presentatie_datum=?,
+        presentatie_notities=?,
+        presentatie_score=?
+       WHERE id=?`,
+      [
+        algemene_feedback || null,
+        'ingevuld',
+        presentatie_datum || null,
+        presentatie_notities || null,
+        presentatie_score !== undefined && presentatie_score !== '' ? parseFloat(presentatie_score) : null,
+        evaluatie_id
+      ]
     )
 
-    // scores per competentie updaten
     for (const score of scores) {
       await db.query(
         'UPDATE evaluatie_score SET score_docent=? WHERE evaluatie_id=? AND competentie_id=?',
