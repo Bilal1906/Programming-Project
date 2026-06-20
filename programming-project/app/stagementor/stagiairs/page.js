@@ -1,32 +1,36 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Topbar from '../component/topbar';
-import { ChevronRight } from 'lucide-react';
-import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Topbar from "../component/topbar";
+import { ChevronRight } from "lucide-react";
+import { fetchMetAuth } from "@/app/lib/fetchMetAuth";
 
 export default function StagiairsPage() {
   const [stagiairs, setStagiairs] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
-    fetchMetAuth('/api/stagementor/stagiairs')
-      .then(res => res?.json())
-      .then(data => {
+    fetchMetAuth("/api/stagementor/stagiairs")
+      .then((res) => res?.json())
+      .then((data) => {
         if (data) setStagiairs(data);
       });
   }, []);
 
   const getInitials = (voornaam, achternaam) => {
-    return `${voornaam?.[0] ?? ''}${achternaam?.[0] ?? ''}`.toUpperCase();
+    return `${voornaam?.[0] ?? ""}${achternaam?.[0] ?? ""}`.toUpperCase();
   };
 
   const formatDatum = (datum) => {
-    if (!datum) return '';
-    return new Date(datum).toLocaleDateString('nl-BE', {
-      day: '2-digit', month: '2-digit', year: 'numeric'
-    }).replace(/\//g, '/');
+    if (!datum) return "";
+    return new Date(datum)
+      .toLocaleDateString("nl-BE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+      .replace(/\//g, "/");
   };
 
   return (
@@ -42,7 +46,9 @@ export default function StagiairsPage() {
           stagiairs.map((s) => (
             <div
               key={s.stage_id}
-              onClick={() => router.push(`/stagementor/stagiairs/${s.stage_id}`)}
+              onClick={() =>
+                router.push(`/stagementor/stagiairs/${s.stage_id}`)
+              }
               className="bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
@@ -65,7 +71,9 @@ export default function StagiairsPage() {
               <div className="grid grid-cols-5 gap-4 px-5 py-4">
                 <div>
                   <p className="text-xs text-gray-400 mb-1">Opleiding</p>
-                  <p className="text-sm font-medium text-gray-900">{s.opleiding}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {s.opleiding}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-400 mb-1">Periode</p>
@@ -82,13 +90,17 @@ export default function StagiairsPage() {
                 <div>
                   <p className="text-xs text-gray-400 mb-1">Week</p>
                   <p className="text-sm font-medium text-gray-900">
-                    6 van {s.aantal_weken}
+                    {s.huidige_week} van {s.aantal_weken}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-400 mb-1">Status</p>
-                  <p className="text-sm font-semibold text-orange-500">
-                    1 logboek te keuren
+                  <p
+                    className={`text-sm font-semibold ${s.logboeken_te_keuren > 0 ? "text-orange-500" : "text-green-600"}`}
+                  >
+                    {s.logboeken_te_keuren > 0
+                      ? `${s.logboeken_te_keuren} logboek${s.logboeken_te_keuren > 1 ? "en" : ""} te keuren`
+                      : "Alles up-to-date"}
                   </p>
                 </div>
               </div>
