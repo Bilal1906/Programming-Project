@@ -8,7 +8,7 @@ export async function GET(request) {
     if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
 
     const [rijen] = await db.query(`
-      SELECT id, naam, omschrijving, gewicht
+      SELECT id, naam, omschrijving, gewicht, rubriek_mentor, rubriek_docent
       FROM competentie
       ORDER BY id ASC
     `)
@@ -27,11 +27,11 @@ export async function POST(request) {
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
     const body = await request.json()
-    const { naam, omschrijving, gewicht } = body
+    const { naam, omschrijving, gewicht, rubriek_mentor, rubriek_docent } = body
 
     const [result] = await db.query(
-      'INSERT INTO competentie (naam, omschrijving, gewicht) VALUES (?, ?, ?)',
-      [naam, omschrijving, gewicht]
+      'INSERT INTO competentie (naam, omschrijving, gewicht, rubriek_mentor, rubriek_docent) VALUES (?, ?, ?, ?, ?)',
+      [naam, omschrijving, gewicht, rubriek_mentor || null, rubriek_docent || null]
     )
 
     return NextResponse.json({ bericht: 'Competentie aangemaakt!', id: result.insertId })
@@ -48,11 +48,11 @@ export async function PUT(request) {
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
     const body = await request.json()
-    const { id, naam, omschrijving, gewicht } = body
+    const { id, naam, omschrijving, gewicht, rubriek_mentor, rubriek_docent } = body
 
     await db.query(
-      'UPDATE competentie SET naam=?, omschrijving=?, gewicht=? WHERE id=?',
-      [naam, omschrijving, gewicht, id]
+      'UPDATE competentie SET naam=?, omschrijving=?, gewicht=?, rubriek_mentor=?, rubriek_docent=? WHERE id=?',
+      [naam, omschrijving, gewicht, rubriek_mentor || null, rubriek_docent || null, id]
     )
 
     return NextResponse.json({ bericht: 'Competentie bijgewerkt!' })
