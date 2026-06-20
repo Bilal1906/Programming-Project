@@ -6,12 +6,18 @@ export async function GET(request) {
   try {
     const auth = verifyToken(request)
     if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
+    const rolFout = checkRol(auth.payload, ['admin'])
+    if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
+
+    const { searchParams } = new URL(request.url)
+    const competentie_id = searchParams.get('competentie_id')
 
     const [rijen] = await db.query(`
-      SELECT id, naam, omschrijving, gewicht
-      FROM competentie
-      ORDER BY id ASC
-    `)
+      SELECT id, competentie_id, rol, score, score_max, beschrijving
+      FROM rubriek_niveau
+      WHERE competentie_id = ?
+      ORDER BY rol ASC, score ASC
+    `, [competentie_id])
 
     return NextResponse.json(rijen)
   } catch (error) {
@@ -27,14 +33,14 @@ export async function POST(request) {
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
     const body = await request.json()
-    const { naam, omschrijving, gewicht } = body
+    const { competentie_id, rol, score, score_max, beschrijving } = body
 
     const [result] = await db.query(
-      'INSERT INTO competentie (naam, omschrijving, gewicht) VALUES (?, ?, ?)',
-      [naam, omschrijving, gewicht]
+      'INSERT INTO rubriek_niveau (competentie_id, rol, score, score_max, beschrijving) VALUES (?, ?, ?, ?, ?)',
+      [competentie_id, rol, score, score_max, beschrijving || null]
     )
 
-    return NextResponse.json({ bericht: 'Competentie aangemaakt!', id: result.insertId })
+    return NextResponse.json({ bericht: 'Niveau aangemaakt!', id: result.insertId })
   } catch (error) {
     return NextResponse.json({ fout: error.message }, { status: 500 })
   }
@@ -48,14 +54,14 @@ export async function PUT(request) {
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
     const body = await request.json()
-    const { id, naam, omschrijving, gewicht } = body
+    const { id, score, score_max, beschrijving } = body
 
     await db.query(
-      'UPDATE competentie SET naam=?, omschrijving=?, gewicht=? WHERE id=?',
-      [naam, omschrijving, gewicht, id]
+      'UPDATE rubriek_niveau SET score=?, score_max=?, beschrijving=? WHERE id=?',
+      [score, score_max, beschrijving || null, id]
     )
 
-    return NextResponse.json({ bericht: 'Competentie bijgewerkt!' })
+    return NextResponse.json({ bericht: 'Niveau bijgewerkt!' })
   } catch (error) {
     return NextResponse.json({ fout: error.message }, { status: 500 })
   }
@@ -71,9 +77,9 @@ export async function DELETE(request) {
     const body = await request.json()
     const { id } = body
 
-    await db.query('DELETE FROM competentie WHERE id=?', [id])
+    await db.query('DELETE FROM rubriek_niveau WHERE id=?', [id])
 
-    return NextResponse.json({ bericht: 'Competentie verwijderd!' })
+    return NextResponse.json({ bericht: 'Niveau verwijderd!' })
   } catch (error) {
     return NextResponse.json({ fout: error.message }, { status: 500 })
   }

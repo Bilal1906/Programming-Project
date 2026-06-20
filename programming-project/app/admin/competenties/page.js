@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Topbar from "../component/topbar";
 import { fetchMetAuth } from "@/app/lib/fetchMetAuth";
-import { Pencil, Trash2, Plus, X, Check } from "lucide-react";
+import { Pencil, Trash2, Plus, X, Check, BookOpen } from "lucide-react";
 
 export default function CompetentiesPage() {
+  const router = useRouter();
   const [competenties, setCompetenties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bewerkId, setBewerkId] = useState(null);
@@ -15,8 +17,6 @@ export default function CompetentiesPage() {
     naam: "",
     omschrijving: "",
     gewicht: "",
-    rubriek_mentor: "",
-    rubriek_docent: "",
   };
   const [form, setForm] = useState(leegForm);
 
@@ -64,8 +64,6 @@ export default function CompetentiesPage() {
         naam: form.naam,
         omschrijving: form.omschrijving,
         gewicht: nieuwGewicht,
-        rubriek_mentor: form.rubriek_mentor,
-        rubriek_docent: form.rubriek_docent,
       }),
     });
 
@@ -88,8 +86,6 @@ export default function CompetentiesPage() {
       naam: c.naam,
       omschrijving: c.omschrijving || "",
       gewicht: c.gewicht,
-      rubriek_mentor: c.rubriek_mentor || "",
-      rubriek_docent: c.rubriek_docent || "",
     });
   };
 
@@ -154,9 +150,7 @@ export default function CompetentiesPage() {
             </h3>
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               <div className="col-span-2">
-                <label className="text-xs text-gray-400 block mb-1">
-                  Naam *
-                </label>
+                <label className="text-xs text-gray-400 block mb-1">Naam *</label>
                 <input
                   type="text"
                   value={form.naam}
@@ -166,51 +160,12 @@ export default function CompetentiesPage() {
                 />
               </div>
               <div className="col-span-2">
-                <label className="text-xs text-gray-400 block mb-1">
-                  Omschrijving
-                </label>
+                <label className="text-xs text-gray-400 block mb-1">Omschrijving</label>
                 <textarea
                   value={form.omschrijving}
-                  onChange={(e) =>
-                    setForm({ ...form, omschrijving: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, omschrijving: e.target.value })}
                   placeholder="Beschrijving van de competentie..."
                   rows={2}
-                  className={`${inputClass} resize-none`}
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="text-xs text-gray-400 block mb-1">
-                  Rubriek mentor
-                </label>
-                <textarea
-                  value={form.rubriek_mentor}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      rubriek_mentor: e.target.value,
-                    })
-                  }
-                  placeholder="Rubriek voor mentor..."
-                  rows={4}
-                  className={`${inputClass} resize-none`}
-                />
-              </div>
-
-              <div className="col-span-2">
-                <label className="text-xs text-gray-400 block mb-1">
-                  Rubriek docent
-                </label>
-                <textarea
-                  value={form.rubriek_docent}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      rubriek_docent: e.target.value,
-                    })
-                  }
-                  placeholder="Rubriek voor docent..."
-                  rows={4}
                   className={`${inputClass} resize-none`}
                 />
               </div>
@@ -222,11 +177,9 @@ export default function CompetentiesPage() {
                       100 -
                       totaalGewicht +
                       (bewerkId
-                        ? competenties.find((c) => c.id === bewerkId)
-                            ?.gewicht || 0
+                        ? competenties.find((c) => c.id === bewerkId)?.gewicht || 0
                         : 0)
-                    ).toFixed(2)}
-                    %
+                    ).toFixed(2)}%
                   </span>
                 </label>
                 <input
@@ -235,9 +188,7 @@ export default function CompetentiesPage() {
                   max="100"
                   step="0.1"
                   value={form.gewicht}
-                  onChange={(e) =>
-                    setForm({ ...form, gewicht: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, gewicht: e.target.value })}
                   placeholder="bv. 20"
                   className={inputClass}
                 />
@@ -266,52 +217,34 @@ export default function CompetentiesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
-                  Naam
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
-                  Omschrijving
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
-                  Rubriek
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">
-                  Gewicht
-                </th>
-                <th className="text-right px-5 py-3 text-xs font-medium text-gray-400">
-                  Acties
-                </th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Naam</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Omschrijving</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-gray-400">Gewicht</th>
+                <th className="text-right px-5 py-3 text-xs font-medium text-gray-400">Acties</th>
               </tr>
             </thead>
             <tbody>
               {competenties.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-5 py-8 text-center text-gray-400"
-                  >
+                  <td colSpan={4} className="px-5 py-8 text-center text-gray-400">
                     Geen competenties gevonden.
                   </td>
                 </tr>
               ) : (
                 competenties.map((c) => (
-                  <tr
-                    key={c.id}
-                    className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-5 py-4 font-medium text-gray-900">
-                      {c.naam}
-                    </td>
-                    <td className="px-5 py-4 text-gray-500 max-w-xs truncate">
-                      {c.omschrijving || "—"}
-                    </td>
-                    <td className="px-5 py-4 text-gray-500 max-w-xs truncate">
-                      {c.rubriek_mentor ? "✓ Mentor" : "—"} /{" "}
-                      {c.rubriek_docent ? "✓ Docent" : "—"}
-                    </td>
+                  <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-4 font-medium text-gray-900">{c.naam}</td>
+                    <td className="px-5 py-4 text-gray-500 max-w-xs truncate">{c.omschrijving || "—"}</td>
                     <td className="px-5 py-4 text-gray-600">{c.gewicht}%</td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => router.push(`/admin/competenties/${c.id}/rubriek`)}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-blue-50 text-blue-500"
+                          title="Rubriek beheren"
+                        >
+                          <BookOpen size={15} />
+                        </button>
                         <button
                           onClick={() => handleBewerken(c)}
                           className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 text-gray-500"
@@ -336,15 +269,10 @@ export default function CompetentiesPage() {
         {competenties.length > 0 && (
           <div className="mt-4 text-xs text-right">
             Totaal gewicht:{" "}
-            <span
-              className={`font-semibold ${
-                totaalGewicht > 100
-                  ? "text-red-500"
-                  : totaalGewicht === 100
-                    ? "text-green-600"
-                    : "text-gray-600"
-              }`}
-            >
+            <span className={`font-semibold ${
+              totaalGewicht > 100 ? "text-red-500" :
+              totaalGewicht === 100 ? "text-green-600" : "text-gray-600"
+            }`}>
               {totaalGewicht.toFixed(1)}%
             </span>
             {totaalGewicht < 100 && (
