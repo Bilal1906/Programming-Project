@@ -7,22 +7,24 @@ import { fetchMetAuth } from '@/app/lib/fetchMetAuth';
 
 export default function DocumentenPage() {
   const [stagiairs, setStagiairs] = useState([]);
+  const [overeenkomsten, setOvereenkomsten] = useState({});
   const [loading, setLoading] = useState(true);
-  const [ondertekend, setOndertekend] = useState({});
+  const [bezig, setBezig] = useState({});
 
   useEffect(() => {
     fetchMetAuth('/api/stagementor/stagiairs')
       .then(res => res?.json())
-      .then(data => {
+      .then(async data => {
         if (data) {
           setStagiairs(data);
-          const statusMap = {};
-          data.forEach(s => {
-            if (s.document_status === 'ondertekend') {
-              statusMap[s.stage_id] = true;
-            }
-          });
-          setOndertekend(statusMap);
+          // laad overeenkomst status per stagiair
+          const statusMap = {}
+          for (const s of data) {
+            const r = await fetchMetAuth(`/api/stagementor/documenten/ondertekenen?stage_id=${s.stage_id}`)
+            const d = await r?.json()
+            if (d && !d.fout) statusMap[s.stage_id] = d
+          }
+          setOvereenkomsten(statusMap)
         }
         setLoading(false);
       })
@@ -30,31 +32,25 @@ export default function DocumentenPage() {
   }, []);
 
   const handleOndertekenen = async (stage_id) => {
-    const response = await fetchMetAuth('/api/student/documenten/ondertekenen', {
+    setBezig(prev => ({ ...prev, [stage_id]: true }))
+    const response = await fetchMetAuth('/api/stagementor/documenten/ondertekenen', {
       method: 'PUT',
       body: JSON.stringify({ stage_id }),
     });
     if (response?.ok) {
-      setOndertekend(prev => ({ ...prev, [stage_id]: true }));
-      alert('Document succesvol ondertekend!');
+      const refresh = await fetchMetAuth(`/api/stagementor/documenten/ondertekenen?stage_id=${stage_id}`)
+      const refreshData = await refresh?.json()
+      if (refreshData && !refreshData.fout) {
+        setOvereenkomsten(prev => ({ ...prev, [stage_id]: refreshData }))
+      }
     } else {
       alert('Er is een fout opgetreden.');
     }
+    setBezig(prev => ({ ...prev, [stage_id]: false }))
   };
 
-  const handleDownload = async (stage_id) => {
-    const response = await fetchMetAuth(`/api/admin/stages/${stage_id}/pdf`);
-    if (!response || !response.ok) {
-      alert('Fout bij downloaden');
-      return;
-    }
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `stageovereenkomst-${stage_id}.pdf`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const handleDownload = (stage_id) => {
+    window.open(`/api/admin/stages/${stage_id}/pdf`, '_blank')
   };
 
   if (loading) {
@@ -66,70 +62,72 @@ export default function DocumentenPage() {
   }
 
   return (
-    <div>
-      <Topbar title="Documenten" subtitle="2025 - 2026" />
-
-      <div className="p-6 flex flex-col gap-6">
+    <div className="flex-1 flex flex-col">
+      <Topbar titel="Documenten" subtitel="2025-2026 · Erasmushogeschool Brussel" />
+      <div className="flex-1 bg-gray-100 p-6 space-y-4">
         {stagiairs.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-lg px-5 py-10 text-center">
-            <p className="text-sm text-gray-400">Geen stagiairs gevonden</p>
+          <div className="bg-white rounded-xl p-8 text-center">
+            <p className="text-sm text-gray-400">Geen stagiairs gevonden.</p>
           </div>
         ) : (
-          stagiairs.map((s) => (
-            <div key={s.stage_id}>
-              <p className="text-xs text-gray-400 mb-2">{s.voornaam} {s.achternaam}</p>
-
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-
-                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-[#1e3a5f] grid place-items-center flex-shrink-0">
-                      <FileText className="w-4 h-4 text-white" />
+          stagiairs.map((s) => {
+            const ov = overeenkomsten[s.stage_id]
+            return (
+              <div key={s.stage_id}>
+                <p className="text-xs font-semibold text-gray-400 mb-2">{s.voornaam} {s.achternaam}</p>
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="flex items-center justify-between px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-[#1e3a5f] rounded-lg flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Stageovereenkomst</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
+                            ov?.signed_student && ov?.signed_stagementor
+                              ? 'bg-green-50 text-green-700 border-green-200'
+                              : ov?.signed_stagementor
+                              ? 'bg-blue-50 text-blue-700 border-blue-200'
+                              : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                          }`}>
+                            {ov?.signed_student && ov?.signed_stagementor
+                              ? 'Volledig ondertekend'
+                              : ov?.signed_stagementor
+                              ? 'Jij hebt ondertekend — wacht op student'
+                              : 'Wacht op ondertekening'}
+                          </span>
+                          {ov?.signed_student ? (
+                            <span className="text-xs text-green-600">✓ Student ondertekend</span>
+                          ) : (
+                            <span className="text-xs text-gray-400">Student nog niet ondertekend</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Stageovereenkomst</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {ondertekend[s.stage_id] ? 'Ondertekend' : 'Wacht op ondertekening'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {ondertekend[s.stage_id] ? (
-                      <span className="text-sm font-medium text-[#3B6D11]">✓ Ondertekend</span>
-                    ) : (
+                    <div className="flex items-center gap-2">
+                      {!ov?.signed_stagementor && (
+                        <button
+                          onClick={() => handleOndertekenen(s.stage_id)}
+                          disabled={bezig[s.stage_id]}
+                          className="px-3 py-1.5 bg-[#1e3a5f] text-white text-xs rounded-lg cursor-pointer font-medium disabled:opacity-50"
+                        >
+                          {bezig[s.stage_id] ? 'Bezig...' : 'Ondertekenen'}
+                        </button>
+                      )}
                       <button
-                        onClick={() => handleOndertekenen(s.stage_id)}
-                        className="px-4 py-1.5 bg-[#1e3a5f] text-white text-sm rounded-lg hover:opacity-90 cursor-pointer font-medium"
+                        onClick={() => handleDownload(s.stage_id)}
+                        className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 text-gray-600 text-xs rounded-lg hover:bg-gray-50 cursor-pointer"
                       >
-                        Document ondertekenen
+                        <Download size={14} />
+                        Download PDF
                       </button>
-                    )}
-                    <button
-                      onClick={() => handleDownload(s.stage_id)}
-                      className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                      <Download size={16} />
-                      Downloaden
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-[#fef3c7] grid place-items-center flex-shrink-0">
-                      <FileText className="w-4 h-4 text-[#854F0B]" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Eindverslag</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Nog niet opgeladen · Verwacht einde stage</p>
                     </div>
                   </div>
-                  <span className="text-sm font-medium text-[#854F0B]">In afwachting</span>
                 </div>
-
               </div>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
     </div>
