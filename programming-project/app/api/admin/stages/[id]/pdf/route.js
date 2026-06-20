@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import db from '@/app/lib/db'
-import { verifyToken } from '@/app/lib/auth'
+import jwt from 'jsonwebtoken'
 import puppeteer from 'puppeteer'
 
 let browserInstance = null
@@ -16,8 +16,21 @@ async function getBrowser() {
 
 export async function GET(request, { params }) {
   try {
-    const auth = verifyToken(request)
-    if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
+    let token = null
+    const authHeader = request.headers.get('authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1]
+    } else {
+      const cookieHeader = request.headers.get('cookie') || ''
+      const match = cookieHeader.match(/token=([^;]+)/)
+      if (match) token = match[1]
+    }
+    if (!token) return NextResponse.json({ fout: 'Geen token' }, { status: 401 })
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET)
+    if (!['admin', 'student', 'stagementor', 'docent'].includes(payload.rol)) {
+      return NextResponse.json({ fout: 'Geen toegang' }, { status: 403 })
+    }
 
     const { id } = await params
 
@@ -81,14 +94,15 @@ export async function GET(request, { params }) {
     .field p { font-size:13px; color:#111; font-weight:500; }
     .opdracht { background:#F9FAFB; border:1px solid #E5E7EB; border-radius:6px; padding:12px; font-size:13px; line-height:1.6; color:#374151; margin-top:4px; }
     .signatures { margin-top:32px; padding-top:24px; border-top:2px solid #1A2E4A; }
-    .sig-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:16px; }
-    .sig-box { border:1px solid #E5E7EB; border-radius:8px; padding:16px; }
+    .sig-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:16px; break-inside:avoid; page-break-inside:avoid; }
+    .sig-box { border:1px solid #E5E7EB; border-radius:8px; padding:16px; break-inside:avoid; page-break-inside:avoid; }
+    .signatures { margin-top:32px; padding-top:24px; border-top:2px solid #1A2E4A; break-inside:avoid; page-break-inside:avoid; }
     .sig-box h4 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280; margin-bottom:12px; }
     .sig-line { height:48px; border-bottom:1px solid #D1D5DB; margin-bottom:8px; }
     .footer { margin-top:40px; padding-top:16px; border-top:1px solid #E5E7EB; font-size:10px; color:#9CA3AF; display:flex; justify-content:space-between; }
-    .badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; }
-    .badge-green { background:#D1FAE5; color:#065F46; }
-    .badge-orange { background:#FEF3C7; color:#92400E; }
+    .badge { font-size:11px; font-weight:600; }
+    .badge-green { color:#065F46; }
+    .badge-orange { color:#92400E; }
   </style>
 </head>
 <body>
@@ -167,7 +181,7 @@ export async function GET(request, { params }) {
   <div class="signatures">
     <div style="font-size:14px;font-weight:700;color:#1A2E4A;margin-bottom:4px;">Handtekeningen</div>
     <div style="font-size:11px;color:#6B7280;margin-bottom:16px;">
-      Status: 
+      Status:
       ${data.signed_student && data.signed_stagementor
         ? '<span class="badge badge-green">Volledig ondertekend</span>'
         : '<span class="badge badge-orange">Wacht op ondertekening</span>'
