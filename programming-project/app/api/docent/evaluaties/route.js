@@ -78,7 +78,7 @@ export async function PUT(request) {
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
     const body = await request.json()
-    const { evaluatie_id, algemene_feedback, scores, presentatie_datum, presentatie_notities, presentatie_score } = body
+    const { evaluatie_id, algemene_feedback, scores, presentatie_datum, presentatie_notities, presentatie_score, presentatie_scores } = body
 
     await db.query(
       `UPDATE evaluatie SET 
@@ -104,6 +104,26 @@ export async function PUT(request) {
         [score.score_docent ?? null, evaluatie_id, score.competentie_id]
       )
     }
+
+    if (presentatie_scores && Array.isArray(presentatie_scores)) {
+      for (const ps of presentatie_scores) {
+        const [bestaand] = await db.query(
+          'SELECT id FROM evaluatie_presentatie_score WHERE evaluatie_id=? AND criterium_id=?',
+          [evaluatie_id, ps.criterium_id]
+        )
+        if (bestaand.length > 0) {
+          await db.query(
+        'UPDATE evaluatie_presentatie_score SET score=? WHERE evaluatie_id=? AND criterium_id=?',
+        [ps.score ?? null, evaluatie_id, ps.criterium_id]
+      )
+    } else {
+      await db.query(
+        'INSERT INTO evaluatie_presentatie_score (evaluatie_id, criterium_id, score) VALUES (?, ?, ?)',
+        [evaluatie_id, ps.criterium_id, ps.score ?? null]
+      )
+    }
+  }
+}
 
     return NextResponse.json({ bericht: 'Evaluatie opgeslagen!' })
   } catch (error) {
