@@ -120,11 +120,11 @@ export default function NieuweStageAanvraag() {
               </div>
               <div>
                 <label className={labelStyle}>Opleiding</label>
-                <input className={`${inputStyle} bg-gray-50`} value={student?.opleiding || 'Toegepaste Informatica'} disabled />
+                <input className={`${inputStyle} bg-gray-50`} value={student?.opleiding || ''} disabled />
               </div>
               <div>
                 <label className={labelStyle}>Academiejaar</label>
-                <input className={`${inputStyle} bg-gray-50`} value={student?.academiejaar || '2025-2026'} disabled />
+                <input className={`${inputStyle} bg-gray-50`} value={student?.academiejaar || ''} disabled />
               </div>
               <div>
                 <label className={labelStyle}>E-mailadres</label>
