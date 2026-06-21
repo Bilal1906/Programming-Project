@@ -29,7 +29,6 @@ export default function StageDetailPage() {
     fetchMetAuth(`/api/admin/stages/${id}`)
       .then(res => res?.json())
       .then(data => {
-        console.log('stage data:', data);
         if (data && !data.fout) {
           setStatus(data.status || '');
           setForm({
