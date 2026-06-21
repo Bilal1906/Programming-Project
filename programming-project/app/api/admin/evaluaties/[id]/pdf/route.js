@@ -36,6 +36,7 @@ export async function GET(request, { params }) {
     const [evalRijen] = await db.query(`
       SELECT e.id, e.type, e.status, e.datum,
              e.algemene_feedback_docent,
+             e.presentatie_datum, e.presentatie_notities,
              u.voornaam as student_voornaam, u.achternaam as student_achternaam,
              u.email as student_email,
              st.opleiding, st.academiejaar,
@@ -88,6 +89,85 @@ export async function GET(request, { params }) {
       for (const r of maxMentor) scoreMaxMentor[r.competentie_id] = r.score_max
     }
 
+    // Pondering
+    const [ponderingRijen] = await db.query('SELECT * FROM evaluatie_pondering ORDER BY id DESC LIMIT 1')
+    const pondering = ponderingRijen[0] ?? { mentor_gewicht: 30, docent_gewicht: 30, presentatie_gewicht: 40 }
+
+    // Presentatie scores (alleen bij finaal)
+    let presentatieScores = []
+    let presentatieCriteria = []
+    if (evaluatie.type === 'finaal') {
+      const [criteriaRijen] = await db.query(`
+        SELECT pc.id, pc.naam, pc.omschrijving, pc.gewicht
+        FROM presentatie_criterium pc ORDER BY pc.id ASC
+      `)
+      const [psRijen] = await db.query(`
+        SELECT eps.criterium_id, eps.score, pc.naam, pc.gewicht,
+               pcn.score_max
+        FROM evaluatie_presentatie_score eps
+        JOIN presentatie_criterium pc ON eps.criterium_id = pc.id
+        LEFT JOIN (
+          SELECT criterium_id, MAX(score_max) as score_max
+          FROM presentatie_criterium_niveau
+          GROUP BY criterium_id
+        ) pcn ON pcn.criterium_id = eps.criterium_id
+        WHERE eps.evaluatie_id = ?
+      `, [id])
+
+      presentatieScores = psRijen
+      presentatieCriteria = criteriaRijen
+    }
+
+    // Berekening eindnota /20
+    let notaMentor = 0
+    let notaDocent = 0
+    let notaPresentatie = 0
+
+    // Mentor score (gewogen gemiddelde genormaliseerd)
+    let mentorTeller = 0, mentorNoemer = 0
+    for (const s of scoreRijen) {
+      if (s.score_mentor !== null && s.score_mentor !== '') {
+        const max = scoreMaxMentor[s.competentie_id] || 4
+        mentorTeller += (parseFloat(s.score_mentor) / max) * parseFloat(s.gewicht)
+        mentorNoemer += parseFloat(s.gewicht)
+      }
+    }
+    if (mentorNoemer > 0) notaMentor = (mentorTeller / mentorNoemer)
+
+    // Docent score (gewogen gemiddelde genormaliseerd)
+    let docentTeller = 0, docentNoemer = 0
+    for (const s of scoreRijen) {
+      if (s.score_docent !== null && s.score_docent !== '') {
+        const max = scoreMaxDocent[s.competentie_id] || 10
+        docentTeller += (parseFloat(s.score_docent) / max) * parseFloat(s.gewicht)
+        docentNoemer += parseFloat(s.gewicht)
+      }
+    }
+    if (docentNoemer > 0) notaDocent = (docentTeller / docentNoemer)
+
+    // Presentatie score (gewogen gemiddelde genormaliseerd)
+    if (evaluatie.type === 'finaal' && presentatieScores.length > 0) {
+      let presTeller = 0, presNoemer = 0
+      for (const ps of presentatieScores) {
+        if (ps.score !== null && ps.score !== '') {
+          const max = ps.score_max || 10
+          presTeller += (parseFloat(ps.score) / max) * parseFloat(ps.gewicht)
+          presNoemer += parseFloat(ps.gewicht)
+        }
+      }
+      if (presNoemer > 0) notaPresentatie = (presTeller / presNoemer)
+    }
+
+    // Eindnota /20
+    const pMentor = parseFloat(pondering.mentor_gewicht) / 100
+    const pDocent = parseFloat(pondering.docent_gewicht) / 100
+    const pPresentatie = parseFloat(pondering.presentatie_gewicht) / 100
+
+    const eindnota = evaluatie.type === 'finaal'
+      ? ((notaMentor * pMentor) + (notaDocent * pDocent) + (notaPresentatie * pPresentatie)) * 20
+      : ((notaMentor * (pondering.mentor_gewicht / (pondering.mentor_gewicht + pondering.docent_gewicht))) +
+         (notaDocent * (pondering.docent_gewicht / (pondering.mentor_gewicht + pondering.docent_gewicht)))) * 20
+
     const fmt = (d) => d ? new Date(d).toLocaleDateString('nl-BE') : '—'
 
     const competentiesHtml = scoreRijen.map(s => `
@@ -114,6 +194,24 @@ export async function GET(request, { params }) {
         ` : ''}
       </div>
     `).join('')
+
+    const presentatieHtml = evaluatie.type === 'finaal' ? `
+      <div class="section">
+        <div class="section-title">Eindpresentatie</div>
+        ${evaluatie.presentatie_datum ? `<p style="font-size:12px;color:#6B7280;margin-bottom:12px;">Datum: ${fmt(evaluatie.presentatie_datum)}</p>` : ''}
+        ${evaluatie.presentatie_notities ? `
+          <div class="algemene-feedback" style="margin-bottom:12px;">${evaluatie.presentatie_notities}</div>
+        ` : ''}
+        ${presentatieScores.map(ps => `
+          <div class="competentie-blok">
+            <div class="comp-header">
+              <div class="comp-naam">${ps.naam}</div>
+              <span class="score-badge docent">${ps.score !== null ? ps.score + '/' + (ps.score_max || 10) : '—'}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''
 
     const html = `
 <!DOCTYPE html>
@@ -151,10 +249,12 @@ export async function GET(request, { params }) {
     .mentor-feedback { background:#FFF7ED; border:1px solid #FED7AA; }
     .mentor-feedback .feedback-label { color:#9A3412; }
     .mentor-feedback .feedback-tekst { color:#7C2D12; }
+    .eindnota-blok { background:#1A2E4A; color:white; border-radius:12px; padding:24px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; break-inside:avoid; }
+    .eindnota-label { font-size:13px; font-weight:600; opacity:0.8; }
+    .eindnota-score { font-size:36px; font-weight:700; }
+    .pondering-info { font-size:10px; opacity:0.6; margin-top:4px; }
     .footer { margin-top:40px; padding-top:16px; border-top:1px solid #E5E7EB; font-size:10px; color:#9CA3AF; display:flex; justify-content:space-between; }
-    @media print {
-      .competentie-blok { break-inside:avoid; page-break-inside:avoid; }
-    }
+    @media print { .competentie-blok { break-inside:avoid; page-break-inside:avoid; } }
   </style>
 </head>
 <body>
@@ -184,6 +284,17 @@ export async function GET(request, { params }) {
     </div>
   </div>
 
+  <!-- Eindnota -->
+  <div class="eindnota-blok">
+    <div>
+      <div class="eindnota-label">Eindnota</div>
+      <div class="pondering-info">
+        Mentor ${pondering.mentor_gewicht}% · Docent ${pondering.docent_gewicht}%${evaluatie.type === 'finaal' ? ` · Presentatie ${pondering.presentatie_gewicht}%` : ''}
+      </div>
+    </div>
+    <div class="eindnota-score">${eindnota.toFixed(1)}<span style="font-size:18px;opacity:0.6">/20</span></div>
+  </div>
+
   ${evaluatie.algemene_feedback_docent ? `
   <div class="section">
     <div class="section-title">Algemene feedback docent</div>
@@ -195,6 +306,8 @@ export async function GET(request, { params }) {
     <div class="section-title">Evaluatie per competentie</div>
     ${competentiesHtml}
   </div>
+
+  ${presentatieHtml}
 
   <div class="footer">
     <span>Competent · Erasmushogeschool Brussel · Toegepaste Informatica</span>
