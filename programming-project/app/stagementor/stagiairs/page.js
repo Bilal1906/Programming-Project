@@ -35,7 +35,7 @@ export default function StagiairsPage() {
 
   return (
     <div>
-      <Topbar title="Mijn stagiairs" subtitle="2025–2026" />
+      <Topbar title="Mijn stagiairs" subtitel="2025–2026" />
 
       <div className="p-6 flex flex-col gap-3">
         {stagiairs.length === 0 ? (

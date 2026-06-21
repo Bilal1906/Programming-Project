@@ -1,10 +1,9 @@
-import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 
-export default function Topbar({ title, backHref, backLabel, subtitle }) {
+export default function Topbar({ titel, subtitel, backHref, backLabel }) {
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-2">
-
       {backHref && (
         <>
           <Link href={backHref} className="flex items-center gap-1 text-sm text-gray-400">
@@ -14,16 +13,13 @@ export default function Topbar({ title, backHref, backLabel, subtitle }) {
           <span className="text-gray-300">/</span>
         </>
       )}
-
-      <span className="text-sm font-semibold text-gray-900">{title}</span>
-
-      {subtitle && (
+      <span className="text-sm font-semibold text-gray-900">{titel}</span>
+      {subtitel && (
         <>
           <span className="text-gray-300">·</span>
-          <span className="text-sm text-gray-400">{subtitle}</span>
+          <span className="text-sm text-gray-400">{subtitel}</span>
         </>
       )}
-
     </div>
-  );
+  )
 }

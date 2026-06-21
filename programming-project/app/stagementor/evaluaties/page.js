@@ -37,7 +37,7 @@ export default function EvaluatiesPage() {
 
   return (
     <div>
-      <Topbar title="Evaluaties" subtitle="2025–2026" />
+      <Topbar title="Evaluaties" subtitel="2025–2026" />
 
       <div className="p-6 flex flex-col gap-6">
         {Object.keys(perStudent).length === 0 ? (
