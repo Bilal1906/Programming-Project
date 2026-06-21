@@ -72,7 +72,40 @@ export async function GET(request, { params }) {
       rubriek: rubriekPerCompetentie[s.competentie_id] || []
     }))
 
-    return NextResponse.json({ evaluatie, scores: scoresMetRubriek })
+    // Presentatie criteria + scores (alleen bij finaal)
+    let presentatieCriteria = []
+    if (evaluatie.type === 'finaal') {
+      const [criteriaRijen] = await db.query(`
+        SELECT id, naam, omschrijving, gewicht
+        FROM presentatie_criterium
+        ORDER BY id ASC
+      `)
+
+      const [niveausRijen] = await db.query(`
+        SELECT id, criterium_id, score, score_max, beschrijving
+        FROM presentatie_criterium_niveau
+        ORDER BY criterium_id ASC, score ASC
+      `)
+
+      const [presentatieScores] = await db.query(`
+        SELECT criterium_id, score
+        FROM evaluatie_presentatie_score
+        WHERE evaluatie_id = ?
+      `, [id])
+
+      const scorePerCriterium = {}
+      for (const s of presentatieScores) {
+        scorePerCriterium[s.criterium_id] = s.score
+      }
+
+      presentatieCriteria = criteriaRijen.map(c => ({
+        ...c,
+        niveaus: niveausRijen.filter(n => n.criterium_id === c.id),
+        score: scorePerCriterium[c.id] ?? null
+      }))
+    }
+
+    return NextResponse.json({ evaluatie, scores: scoresMetRubriek, presentatieCriteria })
   } catch (error) {
     return NextResponse.json({ fout: error.message }, { status: 500 })
   }
