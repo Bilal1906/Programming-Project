@@ -71,8 +71,7 @@ export async function POST(request) {
     )
     const student_id = studentRijen[0].id
 
-    const [docentRijen] = await db.query('SELECT id FROM docent LIMIT 1')
-    const docent_id = docentRijen[0].id
+    const docent_id = null
 
     const [bedrijfResult] = await db.query(
       'INSERT INTO bedrijf (naam, adres, sector, website, telefoon) VALUES (?, ?, ?, ?, ?)',
