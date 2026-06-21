@@ -27,8 +27,8 @@ export default function LoginPage() {
     }
 
     // Token opslaan
-    document.cookie = `token=${data.token}; path=/; max-age=86400`
-    document.cookie = `rol=${data.rol}; path=/; max-age=86400`
+    document.cookie = `token=${data.token}; path=/; max-age=86400; SameSite=Strict`
+    document.cookie = `rol=${data.rol}; path=/; max-age=86400; SameSite=Strict`
 
     // Doorsturen op basis van rol
    if (data.rol === 'student') router.push('/student/dashboard-first')
