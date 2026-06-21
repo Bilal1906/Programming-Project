@@ -7,7 +7,7 @@ export async function GET(request, { params }) {
   try {
     const auth = verifyToken(request)
     if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
-    const rolFout = checkRol(auth.payload, ['admin', 'commissie'])
+    const rolFout = checkRol(auth.payload, ['admin'])
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
     const { id } = await params
@@ -33,9 +33,7 @@ export async function GET(request, { params }) {
       WHERE s.id = ?
     `, [id])
 
-    if (rijen.length === 0) {
-      return NextResponse.json({ fout: 'Stage niet gevonden' }, { status: 404 })
-    }
+    if (rijen.length === 0) return NextResponse.json({ fout: 'Stage niet gevonden' }, { status: 404 })
     return NextResponse.json(rijen[0])
   } catch (error) {
     return NextResponse.json({ fout: error.message }, { status: 500 })
@@ -46,19 +44,17 @@ export async function PUT(request, { params }) {
   try {
     const auth = verifyToken(request)
     if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
-    const rolFout = checkRol(auth.payload, ['admin', 'commissie'])
+    const rolFout = checkRol(auth.payload, ['admin'])
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
     const { id } = await params
     const body = await request.json()
 
     const [stageRows] = await db.query('SELECT student_id, stagementor_id FROM stage WHERE id = ?', [id])
-    if (stageRows.length === 0) {
-      return NextResponse.json({ fout: 'Stage niet gevonden' }, { status: 404 })
-    }
+    if (stageRows.length === 0) return NextResponse.json({ fout: 'Stage niet gevonden' }, { status: 404 })
+
     const { student_id, stagementor_id } = stageRows[0]
 
-    // --- student (user + student) ---
     if (student_id) {
       const [stRows] = await db.query('SELECT user_id FROM student WHERE id = ?', [student_id])
       const studentUserId = stRows[0]?.user_id
@@ -74,7 +70,6 @@ export async function PUT(request, { params }) {
       )
     }
 
-    // --- stagementor (user + stagementor + bedrijf) ---
     let mentorUserId = null
     if (stagementor_id) {
       const [smRows] = await db.query('SELECT user_id, bedrijf_id FROM stagementor WHERE id = ?', [stagementor_id])
@@ -95,7 +90,6 @@ export async function PUT(request, { params }) {
       }
     }
 
-    // --- de stage zelf ---
     await db.query(
       `UPDATE stage SET
         docent_id=?, opdracht_omschrijving=?, startdatum=?, einddatum=?,
@@ -116,7 +110,6 @@ export async function PUT(request, { params }) {
       ]
     )
 
-    // --- bij goedkeuring: code + mail naar de stagementor ---
     if (body.status === 'goedgekeurd' && body.mentor_email) {
       try {
         const code = Math.floor(100000 + Math.random() * 900000).toString()

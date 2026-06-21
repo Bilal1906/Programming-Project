@@ -13,38 +13,28 @@ export async function GET(request) {
 
     const [rijen] = await db.query(`
       SELECT 
-        s.id,
-        s.status,
-        s.startdatum,
-        s.einddatum,
-        s.feedback_commissie,
-        s.ingediend_op,
-        s.goedgekeurd_op,
-        u.voornaam as student_voornaam,
-        u.achternaam as student_achternaam,
+        s.id, s.status, s.startdatum, s.einddatum,
+        s.feedback_commissie, s.ingediend_op, s.goedgekeurd_op,
+        u.voornaam as student_voornaam, u.achternaam as student_achternaam,
         u.email as student_email,
         b.naam as bedrijf_naam,
-        mu.voornaam as mentor_voornaam,
-        mu.achternaam as mentor_achternaam,
+        mu.voornaam as mentor_voornaam, mu.achternaam as mentor_achternaam,
         mu.email as mentor_email,
         sm.id as stagementor_id,
-        du.voornaam as docent_voornaam,
-        du.achternaam as docent_achternaam
+        du.voornaam as docent_voornaam, du.achternaam as docent_achternaam
       FROM stage s
       JOIN student st ON s.student_id = st.id
       JOIN user u ON st.user_id = u.id
       JOIN stagementor sm ON s.stagementor_id = sm.id
       JOIN user mu ON sm.user_id = mu.id
       JOIN bedrijf b ON sm.bedrijf_id = b.id
-      JOIN docent d ON s.docent_id = d.id
-      JOIN user du ON d.user_id = du.id
+      LEFT JOIN docent d ON s.docent_id = d.id
+      LEFT JOIN user du ON d.user_id = du.id
       ORDER BY s.ingediend_op DESC
     `)
 
     return NextResponse.json(rijen)
-
   } catch (error) {
-    console.error('Admin stages fout:', error)
     return NextResponse.json({ fout: error.message }, { status: 500 })
   }
 }
@@ -53,7 +43,7 @@ export async function PUT(request) {
   try {
     const auth = verifyToken(request)
     if (auth.fout) return NextResponse.json({ fout: auth.fout }, { status: auth.status })
-    const rolFout = checkRol(auth.payload, ['admin', 'commissie'])
+    const rolFout = checkRol(auth.payload, ['admin'])
     if (rolFout) return NextResponse.json({ fout: rolFout.fout }, { status: rolFout.status })
 
     const body = await request.json()
@@ -66,12 +56,10 @@ export async function PUT(request) {
 
     const [stageRijen] = await db.query(`
       SELECT 
-        u.voornaam as student_voornaam,
-        u.email as student_email,
+        u.voornaam as student_voornaam, u.email as student_email,
         b.naam as bedrijf_naam,
         mu.id as mentor_user_id,
-        mu.voornaam as mentor_voornaam,
-        mu.email as mentor_email
+        mu.voornaam as mentor_voornaam, mu.email as mentor_email
       FROM stage s
       JOIN student st ON s.student_id = st.id
       JOIN user u ON st.user_id = u.id
@@ -117,9 +105,7 @@ export async function PUT(request) {
     }
 
     return NextResponse.json({ bericht: 'Stage status bijgewerkt!' })
-
   } catch (error) {
-    console.error('Stage updaten fout:', error)
     return NextResponse.json({ fout: error.message }, { status: 500 })
   }
 }
@@ -139,7 +125,6 @@ export async function POST(request) {
       opdracht_omschrijving, startdatum, einddatum, docent_id,
     } = body
 
-    // 1. student zoeken op email
     const [studentRijen] = await db.query(`
       SELECT st.id FROM student st
       JOIN user u ON st.user_id = u.id
@@ -151,28 +136,24 @@ export async function POST(request) {
     }
     const student_id = studentRijen[0].id
 
-    // 2. bedrijf aanmaken
     const [bedrijfResult] = await db.query(
       'INSERT INTO bedrijf (naam, adres, sector, website) VALUES (?, ?, ?, ?)',
       [bedrijf_naam, bedrijf_adres, sector, website]
     )
     const bedrijf_id = bedrijfResult.insertId
 
-    // 3. mentor user aanmaken
     const [userResult] = await db.query(
       `INSERT INTO user (voornaam, achternaam, email, telefoon, rol) VALUES (?, ?, ?, ?, 'stagementor')`,
       [mentor_voornaam, mentor_achternaam, mentor_email, mentor_telefoon]
     )
     const mentor_user_id = userResult.insertId
 
-    // 4. stagementor aanmaken
     const [smResult] = await db.query(
       'INSERT INTO stagementor (user_id, bedrijf_id, functie) VALUES (?, ?, ?)',
       [mentor_user_id, bedrijf_id, mentor_functie]
     )
     const stagementor_id = smResult.insertId
 
-    // 5. stage aanmaken
     const [stageResult] = await db.query(
       `INSERT INTO stage (student_id, docent_id, stagementor_id, opdracht_omschrijving, startdatum, einddatum, status, ingediend_op)
        VALUES (?, ?, ?, ?, ?, ?, 'ingediend', NOW())`,
