@@ -10,17 +10,50 @@ import {
   GraduationCap,
   BookOpen,
   ClipboardList,
+  Layers,
 } from "lucide-react";
 
 const navItems = [
-  { href: "/admin/dashboard", label: "dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { href: "/admin/stage", label: "stage", icon: <StickyNote className="w-4 h-4" /> },
-  { href: "/admin/studenten", label: "studenten", icon: <Users className="w-4 h-4" /> },
-  { href: "/admin/docenten", label: "docenten", icon: <Users className="w-4 h-4" /> },
-  { href: "/admin/stagementors", label: "stagementors", icon: <Users className="w-4 h-4" /> },
-  { href: "/admin/overeenkomsten", label: "overeenkomsten", icon: <GraduationCap className="w-4 h-4" /> },
-  { href: "/admin/competenties", label: "competenties", icon: <BookOpen className="w-4 h-4" /> },
-  { href: "/admin/evaluaties", label: "evaluaties", icon: <ClipboardList className="w-4 h-4" /> },
+  {
+    href: "/admin/dashboard",
+    label: "dashboard",
+    icon: <LayoutDashboard className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/stage",
+    label: "stage",
+    icon: <StickyNote className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/studenten",
+    label: "studenten",
+    icon: <Users className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/docenten",
+    label: "docenten",
+    icon: <Users className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/stagementors",
+    label: "stagementors",
+    icon: <Users className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/overeenkomsten",
+    label: "overeenkomsten",
+    icon: <GraduationCap className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/competenties",
+    label: "competenties",
+    icon: <BookOpen className="w-4 h-4" />,
+  },
+  {
+    href: "/admin/evaluaties",
+    label: "evaluaties",
+    icon: <ClipboardList className="w-4 h-4" />,
+  },
 ];
 
 export default function Sidebar() {
@@ -28,33 +61,42 @@ export default function Sidebar() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const token = document.cookie.split('; ').find(r => r.startsWith('token='))?.split('=')[1]
+    const token = document.cookie
+      .split("; ")
+      .find((r) => r.startsWith("token="))
+      ?.split("=")[1];
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        setUser({ name: `${payload.voornaam} ${payload.achternaam}` })
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        setUser({ name: `${payload.voornaam} ${payload.achternaam}` });
       } catch {}
     }
-  }, [])
+  }, []);
 
   const initials = user?.name
-    ? user.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
     : "—";
 
   return (
     <aside className="w-52 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col py-5 h-screen sticky top-0">
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1.5rem", marginLeft: "1rem" }}>
-        <svg width="36" height="36" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-          <rect width="120" height="120" rx="20" fill="#1a2340" />
-          <path d="M50 45 A30 30 0 1 0 50 75" fill="none" stroke="white" strokeWidth="9" strokeLinecap="round" />
-          <polyline points="65,68 75,80 95,55" fill="none" stroke="#4ade80" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span style={{ fontWeight: "600", fontSize: "1.1rem" }}>Competent</span>
+      <div className="flex items-center gap-2.5 px-4 mb-7">
+        <div className="w-8 h-8 bg-[#1e3a5f] rounded-lg grid place-items-center flex-shrink-0">
+          <Layers className="w-4 h-4 text-white" />
+        </div>
+        <span className="text-sm font-bold text-gray-900 tracking-tight">
+          Competent
+        </span>
       </div>
 
       <nav className="flex flex-col flex-1">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          const isActive =
+            pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}
@@ -65,7 +107,9 @@ export default function Sidebar() {
                   : "text-gray-500 font-medium border-l-2 border-transparent"
               }`}
             >
-              <span className={isActive ? "text-[#1e3a5f]" : "text-gray-400"}>{item.icon}</span>
+              <span className={isActive ? "text-[#1e3a5f]" : "text-gray-400"}>
+                {item.icon}
+              </span>
               {item.label}
             </Link>
           );
@@ -78,13 +122,19 @@ export default function Sidebar() {
           pathname === "/admin/profiel" ? "bg-[#eef2ff]" : ""
         }`}
       >
-        <div className={`w-8 h-8 rounded-full grid place-items-center text-xs font-bold flex-shrink-0 ${
-          pathname === "/admin/profiel" ? "bg-[#1e3a5f] text-white" : "bg-[#B5D4F4] text-[#0C447C]"
-        }`}>
+        <div
+          className={`w-8 h-8 rounded-full grid place-items-center text-xs font-bold flex-shrink-0 ${
+            pathname === "/admin/profiel"
+              ? "bg-[#1e3a5f] text-white"
+              : "bg-[#B5D4F4] text-[#0C447C]"
+          }`}
+        >
           {initials}
         </div>
         <div className="min-w-0">
-          <div className="text-xs font-semibold text-gray-900 truncate">{user?.name ?? '—'}</div>
+          <div className="text-xs font-semibold text-gray-900 truncate">
+            {user?.name ?? "—"}
+          </div>
           <div className="text-xs text-gray-400">Admin</div>
         </div>
       </Link>
